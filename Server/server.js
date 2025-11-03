@@ -1,23 +1,52 @@
+//Import dependencies
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
+const bodyParser = require('body-parser');
 
+//Initialize express app
 const app = express();
-app.use(bodyParser.json());
+
+//Middleware setup
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get('/', (req, res) => {
-  res.send('Backend is working!');
+//Health check route
+app.get('/', (req, res) =>
+  res.send('Melony - Personal Finance Management App Backend Running...!!!')
+);
+
+//Import routes and sync manager
+const { syncPendingActions } = require("./sync/syncManager");
+const { syncPendingLocalActions } = require("./sync/localSyncManager");
+const userRoutes = require('./routes/userRoutes');
+
+//Mount API routes
+app.use('/api/users', userRoutes);
+
+//Define port
+const PORT = process.env.PORT || 3000;
+
+//Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
 
+//Run pending sync actions on startup
+(async () => {
+  try {
+    await syncPendingActions();
+    await syncPendingLocalActions();
+  } catch (err) {
+    console.error("Error running sync on startup:", err.message);
+  }
+})();
 
-app.get('/userInfo', (req, res) => {
-  const sampleUsers = [
-    { user_id: 1, firstName: 'Sahan', lastName: 'Fernando', email: 'sahan.f1@gmail.com' },
-    { user_id: 2, firstName: 'Kavindi', lastName: 'Jayasinghe', email: 'kavindi.j1@gmail.com' },
-    { user_id: 2, firstName: 'Kavindi', lastName: 'Jayasinghe', email: 'kavindi.j1@gmail.com' }
-  ];
-  res.json(sampleUsers);
-});
-
-app.listen(5000, () => console.log('Server running on port 5000'));
+//Schedule automatic sync every 5 minutes
+setInterval(async () => {
+  try {
+    await syncPendingActions();
+  } catch (err) {
+    console.error("Error running scheduled sync:", err.message);
+  }
+}, 5 * 60 * 1000);

@@ -12,24 +12,16 @@ INSERT INTO AdminInfo (firstName, lastName, officeEmail, password, role, departm
 ('Kasun', 'Ranasinghe', 'kasun.r1@melony.lk','kasun@999', 'Data Analyst', 'Data', '0114455789');
 
 -- USERINFO
-INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city) VALUES
-('Sahan', 'Fernando', 'sahan.f1@gmail.com', 'Sahan@123', 'Software Engineer', '45/2', 'Temple Road', 'Kandy');
-INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city) VALUES
-('Kavindi', 'Jayasinghe', 'kavindi.j1@gmail.com', 'Kavi@456', 'Teacher', '12A', 'Station Road', 'Galle');
-INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city) VALUES
-('Tharindu', 'Wijesekara', 'tharindu.w1@gmail.com', 'Tharu@789', 'Bank Officer', '77', 'Main Street', 'Colombo');
-INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city) VALUES
-('Ishara', 'Perera', 'ishara.p1@gmail.com', 'Isha@321', 'Accountant', '23/7', 'Hill Street', 'Kurunegala');
-INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city) VALUES
-('Dinuka', 'De Silva', 'dinuka.s1@gmail.com', 'Dinu@654', 'Marketing Executive', '88', 'Park Avenue', 'Matara');
-
--- USER_PHONE
-INSERT INTO User_Phone (user_id, phone, isPrimary) VALUES (1, '0712345678', 'Y');
-INSERT INTO User_Phone (user_id, phone, isPrimary) VALUES (1, '0778765432', 'N');
-INSERT INTO User_Phone (user_id, phone, isPrimary) VALUES (2, '0709876543', 'Y');
-INSERT INTO User_Phone (user_id, phone, isPrimary) VALUES (3, '0723344556', 'Y');
-INSERT INTO User_Phone (user_id, phone, isPrimary) VALUES (4, '0752233445', 'Y');
-INSERT INTO User_Phone (user_id, phone, isPrimary) VALUES (5, '0778956325', 'Y');
+INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city, phone, isDeleted) VALUES
+('Sahan', 'Fernando', 'sahan.f1@gmail.com', 'Sahan@123', 'Software Engineer', '45/2', 'Temple Road', 'Kandy', '0778885552', 'N');
+INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city, phone, isDeleted) VALUES
+('Kavindi', 'Jayasinghe', 'kavindi.j1@gmail.com', 'Kavi@456', 'Teacher', '12A', 'Station Road', 'Galle', '0705452586', 'N');
+INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city, phone, isDeleted) VALUES
+('Tharindu', 'Wijesekara', 'tharindu.w1@gmail.com', 'Tharu@789', 'Bank Officer', '77', 'Main Street', 'Colombo', '0726664442', 'N');
+INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city, phone, isDeleted) VALUES
+('Ishara', 'Perera', 'ishara.p1@gmail.com', 'Isha@321', 'Accountant', '23/7', 'Hill Street', 'Kurunegala', '0748563452', 'N');
+INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNO, streetName, city, phone, isDeleted) VALUES
+('Dinuka', 'De Silva', 'dinuka.s1@gmail.com', 'Dinu@654', 'Marketing Executive', '88', 'Park Avenue', 'Matara', '0778956545', 'N');
 
 -- NOTE
 INSERT INTO Note (user_id, title, description, actionDate) VALUES
