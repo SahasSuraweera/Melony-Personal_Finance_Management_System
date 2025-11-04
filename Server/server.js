@@ -19,10 +19,15 @@ app.get('/', (req, res) =>
 //Import routes and sync manager
 const { syncPendingActions } = require("./sync/syncManager");
 const { syncPendingLocalActions } = require("./sync/localSyncManager");
+const { syncPendingAccountActions } = require("./sync/syncAccountManager");
+
 const userRoutes = require('./routes/userRoutes');
+const accountRoutes = require('./routes/accountRoutes');
 
 //Mount API routes
 app.use('/api/users', userRoutes);
+app.use('/api/accounts', accountRoutes);
+
 
 //Define port
 const PORT = process.env.PORT || 3000;
@@ -46,6 +51,8 @@ app.listen(PORT, () => {
 setInterval(async () => {
   try {
     await syncPendingActions();
+    await syncPendingAccountActions();
+
   } catch (err) {
     console.error("Error running scheduled sync:", err.message);
   }

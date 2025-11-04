@@ -9,4 +9,5 @@ router.put('/updateEmail/:user_id', userController.updateEmail);
 router.put('/updatePassword/:user_id', userController.updatePassword);
 router.put('/delete/:user_id', userController.deleteUser);
 
+
 module.exports = router;

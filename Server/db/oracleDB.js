@@ -3,8 +3,8 @@ const oracledb = require('oracledb');
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
 const oracleConfig = {
-  user: 'melony',
-  password: 'melony123',
+  user: 'system1',
+  password: 'root',
   connectString: 'localhost/XEPDB1'
 };
 
