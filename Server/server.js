@@ -56,4 +56,4 @@ setInterval(async () => {
   } catch (err) {
     console.error("Error running scheduled sync:", err.message);
   }
-}, 5 * 60 * 1000);
+}, 10 * 60 * 1000);
