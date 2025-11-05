@@ -22,11 +22,21 @@ const { syncPendingLocalActions } = require("./sync/localSyncManager");
 const { syncPendingAccountActions } = require("./sync/syncAccountManager");
 
 const userRoutes = require('./routes/userRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 const accountRoutes = require('./routes/accountRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const budgetRoutes = require('./routes/budgetRoutes');
+const savingGoalRoutes = require('./routes/savingGoalRoutes');
+const savingTransactionRoutes = require('./routes/savingTransactionRoutes');
 
 //Mount API routes
 app.use('/api/users', userRoutes);
+app.use('/api/notes', noteRoutes);
 app.use('/api/accounts', accountRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/savingsGoals', savingGoalRoutes);
+app.use('/api/savingTransactions', savingTransactionRoutes);
 
 
 //Define port
