@@ -10,34 +10,24 @@ CREATE TABLE AdminInfo (
     role        TEXT    NOT NULL,
     department  TEXT    NOT NULL,
     officePhone TEXT    NOT NULL
-);-- USER table
+);
 
+-- USERINFO table
 CREATE TABLE UserInfo (
     user_id    INTEGER PRIMARY KEY AUTOINCREMENT,
     firstName  TEXT    NOT NULL,
     lastName   TEXT    NOT NULL,
-    email      TEXT    UNIQUE
-                       NOT NULL,
+    email      TEXT    UNIQUE NOT NULL,
     password   TEXT    NOT NULL,
     occupation TEXT    NOT NULL,
     houseNO    TEXT    NOT NULL,
     streetName TEXT    NOT NULL,
     city       TEXT    NOT NULL,
-    phone      TEXT,
-    isDeleted  TEXT    DEFAULT 'N' 
-                       CHECK(isDeleted IN ('Y','N'))
-);-- USER_PHONES table
+    phone      TEXT    NOT NULL,
+    isDeleted  TEXT    DEFAULT 'N' CHECK (isDeleted IN ('Y', 'N') ) 
+);
 
-CREATE TABLE User_Phone (
-    user_id   INTEGER NOT NULL,
-    phone     TEXT    NOT NULL,
-    isPrimary TEXT    DEFAULT 'Y'
-                      CHECK (isPrimary IN ('Y', 'N') ),
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id) 
-);-- NOTE table
+-- NOTE table
 
 CREATE TABLE Note (
     note_id     INTEGER   PRIMARY KEY AUTOINCREMENT,
@@ -46,17 +36,18 @@ CREATE TABLE Note (
     description TEXT      NOT NULL,
     actionDate  DATE,
     updatedAt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id) 
-);-- ACCOUNT_TYPE table
+    FOREIGN KEY (user_id) REFERENCES UserInfo (user_id) 
+);
+
+-- ACCOUNT_TYPE table
 
 CREATE TABLE Account_Type (
     acc_type_id      INTEGER PRIMARY KEY AUTOINCREMENT,
     accTypeName      TEXT    NOT NULL,
     assetOrLiability TEXT    CHECK (assetOrLiability IN ('Asset', 'Liability') ) 
-);-- ACCOUNT table
+);
+
+-- ACCOUNT table
 
 CREATE TABLE Account (
     account_id  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,22 +57,19 @@ CREATE TABLE Account (
     reference   TEXT,
     institution TEXT,
     balance     REAL    DEFAULT 0,
-    isActive    TEXT    DEFAULT 'Y'
-                        CHECK (isActive IN ('Y', 'N') ),
-    FOREIGN KEY (
-        acc_type_id
-    )
-    REFERENCES Account_Type (acc_type_id),
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id) 
-);-- TRANSACTION_CATEGORY table
+    isActive    TEXT    DEFAULT 'Y' CHECK (isActive IN ('Y', 'N') ),
+    FOREIGN KEY (acc_type_id) REFERENCES Account_Type (acc_type_id),
+    FOREIGN KEY (user_id) REFERENCES UserInfo (user_id)   
+);
+
+-- TRANSACTION_CATEGORY table
 
 CREATE TABLE Transaction_Category (
     category_id  INTEGER PRIMARY KEY AUTOINCREMENT,
     categoryName TEXT    NOT NULL
-);-- TRANSACTION table
+);
+
+-- TRANSACTION table
 
 CREATE TABLE Transaction_Info (
     transaction_id  INTEGER   PRIMARY KEY AUTOINCREMENT,
@@ -93,21 +81,13 @@ CREATE TABLE Transaction_Info (
     description     TEXT,
     tranDate        DATE      DEFAULT CURRENT_DATE,
     tranTime        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-     isDeleted  TEXT    DEFAULT 'N' 
-                       CHECK(isDeleted IN ('Y','N')),
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id),
-    FOREIGN KEY (
-        account_id
-    )
-    REFERENCES Account (account_id),
-    FOREIGN KEY (
-        category_id
-    )
-    REFERENCES Transaction_Category (category_id) 
-);-- BUDGET table
+    isDeleted       TEXT      DEFAULT 'N' CHECK (isDeleted IN ('Y', 'N') ),
+    FOREIGN KEY (user_id) REFERENCES UserInfo (user_id),
+    FOREIGN KEY (account_id) REFERENCES Account (account_id),
+    FOREIGN KEY (category_id)REFERENCES Transaction_Category (category_id) 
+);
+
+-- BUDGET table
 
 CREATE TABLE Budget (
     budget_id    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,39 +98,11 @@ CREATE TABLE Budget (
     warningLimit REAL    NOT NULL,
     maximumLimit REAL    NOT NULL,
     description  TEXT,
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id),
-    FOREIGN KEY (
-        category_id
-    )
-    REFERENCES Transaction_Category (category_id) 
-);-- INTERNAL_TRANSACTIONS table
+    FOREIGN KEY (user_id) REFERENCES UserInfo (user_id),
+    FOREIGN KEY (category_id) REFERENCES Transaction_Category (category_id) 
+);
 
-CREATE TABLE Internal_Transaction (
-    int_tran_id     INTEGER   PRIMARY KEY AUTOINCREMENT,
-    user_id         INTEGER   NOT NULL,
-    from_account_id INTEGER   NOT NULL,
-    to_account_id   INTEGER   NOT NULL,
-    amount          REAL      NOT NULL,
-    transferType    TEXT      NOT NULL,
-    description     TEXT,
-    tranDate        DATE      DEFAULT CURRENT_DATE,
-    tranTime        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id),
-    FOREIGN KEY (
-        from_account_id
-    )
-    REFERENCES Account (account_id),
-    FOREIGN KEY (
-        to_account_id
-    )
-    REFERENCES Account (account_id) 
-);-- SAVING_GOAL table
+-- SAVING_GOAL table
 
 CREATE TABLE Saving_Goal (
     goal_id       INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -161,20 +113,15 @@ CREATE TABLE Saving_Goal (
     currentAmount REAL    DEFAULT 0,
     startDate     DATE    NOT NULL,
     endDate       DATE    NOT NULL,
-    isActive      TEXT    DEFAULT 'Y'
-                          CHECK (isActive IN ('Y', 'N') ),
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id),
-    FOREIGN KEY (
-        account_id
-    )
-    REFERENCES Account (account_id) 
-);-- SAVING_TRANSACTION table
+    isActive      TEXT    DEFAULT 'Y' CHECK (isActive IN ('Y', 'N') ),
+    FOREIGN KEY (user_id) REFERENCES UserInfo (user_id),
+    FOREIGN KEY (account_id) REFERENCES Account (account_id) 
+);
+
+-- SAVING_TRANSACTION table
 
 CREATE TABLE Saving_Transaction (
-    saving_transaction_id INTEGER   PRIMARY KEY AUTOINCREMENT,
+    sav_tran_id INTEGER   PRIMARY KEY AUTOINCREMENT,
     user_id               INTEGER   NOT NULL,
     goal_id               INTEGER   NOT NULL,
     account_id            INTEGER   NOT NULL,
@@ -182,20 +129,8 @@ CREATE TABLE Saving_Transaction (
     description           TEXT,
     tranDate              DATE      DEFAULT CURRENT_DATE,
     tranTime              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (
-        user_id
-    )
-    REFERENCES UserInfo (user_id),
-    FOREIGN KEY (
-        goal_id
-    )
-    REFERENCES Saving_Goal (goal_id),
-    FOREIGN KEY (
-        account_id
-    )
-    REFERENCES Account (account_id) 
+    FOREIGN KEY (user_id) REFERENCES UserInfo (user_id),
+    FOREIGN KEY (goal_id) REFERENCES Saving_Goal (goal_id),
+    FOREIGN KEY (account_id) REFERENCES Account (account_id) 
 );
-
-
-
 
