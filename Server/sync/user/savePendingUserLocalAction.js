@@ -1,9 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 
-const pendingLocalFile = path.join(__dirname, "pendingLocalSync.json");
+const pendingLocalFile = path.join(__dirname, "pendingUserLocalSync.json");
 
-function savePendingLocalAction(action, data = {}) {
+function savePendingUserLocalAction(action, data = {}) {
   try {
     let existing = [];
     if (fs.existsSync(pendingLocalFile)) {
@@ -13,10 +13,10 @@ function savePendingLocalAction(action, data = {}) {
     existing.push({ action, data });
 
     fs.writeFileSync(pendingLocalFile, JSON.stringify(existing, null, 2));
-    console.log(`Added ${action.toUpperCase()} to pendingLocalSync.json`);
+    console.log(`Added ${action.toUpperCase()} to pendingUserLocalSync.json`);
   } catch (err) {
     console.error("Failed to save pending local action:", err.message);
   }
 }
 
-module.exports = { savePendingLocalAction };
+module.exports = { savePendingUserLocalAction };

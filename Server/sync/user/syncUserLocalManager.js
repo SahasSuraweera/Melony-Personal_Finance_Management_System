@@ -1,10 +1,10 @@
 const fs = require("fs");
 const path = require("path");
-const { sqliteDb } = require("../db/sqliteDB");
+const { sqliteDb } = require("../../db/sqliteDB");
 
-const localPendingFile = path.join(__dirname, "pendingLocalSync.json");
+const localPendingFile = path.join(__dirname, "pendingUserLocalSync.json");
 
-function savePendingLocalAction(action, userData) {
+function savePendingUserLocalAction(action, userData) {
   try {
     let pending = [];
     if (fs.existsSync(localPendingFile)) {
@@ -19,21 +19,21 @@ function savePendingLocalAction(action, userData) {
     });
 
     fs.writeFileSync(localPendingFile, JSON.stringify(pending, null, 2));
-    console.log(`Saved '${action}' for user ${userData.USER_ID} in pendingLocalSync.json`);
+    console.log(`Saved '${action}' for user ${userData.USER_ID} in pendingUserLocalSync.json`);
   } catch (err) {
     console.error("Failed to save pending local action:", err.message);
   }
 }
 
-async function syncPendingLocalActions() {
+async function syncPendingUserLocalActions() {
   if (!fs.existsSync(localPendingFile)) {
-    console.log("No pending local actions to sync.");
+    console.log("No pending local User actions to sync.");
     return;
   }
 
   const pending = JSON.parse(fs.readFileSync(localPendingFile, "utf-8") || "[]");
   if (pending.length === 0) {
-    console.log("No pending local actions to sync");
+    console.log("No pending local User actions to sync");
     return;
   }
 
@@ -98,11 +98,10 @@ async function syncPendingLocalActions() {
     }
   }
 
-  // Remove successful syncs
   const remaining = pending.filter((r) => !successful.includes(r));
   fs.writeFileSync(localPendingFile, JSON.stringify(remaining, null, 2));
-  console.log(`Local sync completed. ${successful.length} succeeded, ${remaining.length} remaining.`);
+  console.log(`Local User sync completed. ${successful.length} succeeded, ${remaining.length} remaining.`);
 }
 
-module.exports = { savePendingLocalAction, syncPendingLocalActions };
+module.exports = { savePendingUserLocalAction, syncPendingUserLocalActions };
 

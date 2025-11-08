@@ -147,7 +147,7 @@ CREATE TABLE Saving_Transaction (
     description VARCHAR2(255),
     tranDate DATE DEFAULT SYSDATE,
     tranTime TIMESTAMP DEFAULT SYSTIMESTAMP,
-    CONSTRAINT saving_trans_unique UNIQUE (saving_transaction_id, user_id),
+    CONSTRAINT saving_trans_unique UNIQUE (sav_tran_id, user_id),
     FOREIGN KEY (user_id) REFERENCES UserInfo(user_id),
     FOREIGN KEY (goal_id, user_id) REFERENCES Saving_Goal(goal_id, user_id),
     FOREIGN KEY (account_id, user_id) REFERENCES Account(account_id, user_id)

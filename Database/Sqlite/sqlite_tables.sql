@@ -1,16 +1,5 @@
 PRAGMA foreign_keys = 'ON';-- ADMIN table
 
-CREATE TABLE AdminInfo (
-    admin_id    INTEGER PRIMARY KEY AUTOINCREMENT,
-    firstName   TEXT    NOT NULL,
-    lastName    TEXT    NOT NULL,
-    officeEmail TEXT    UNIQUE
-                        NOT NULL,
-    password    TEXT    NOT NULL,
-    role        TEXT    NOT NULL,
-    department  TEXT    NOT NULL,
-    officePhone TEXT    NOT NULL
-);
 
 -- USERINFO table
 CREATE TABLE UserInfo (
