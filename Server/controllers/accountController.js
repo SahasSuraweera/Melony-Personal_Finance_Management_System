@@ -1,9 +1,7 @@
 const { sqliteDb } = require("../db/sqliteDB");
 const { getOracleConnection } = require("../db/oracleDB");
-const { savePendingAccountAction } = require("../sync/savePendingAccountAction");
+const { savePendingAccountAction } = require("../sync/account/savePendingAccountAction");
 
-
-//Create new Account (SQLite first, then Oracle)
 exports.createAccount = async (req, res) => {
   const { user_id, acc_type_id, nickname, reference, institution, balance } = req.body;
 
@@ -12,7 +10,6 @@ exports.createAccount = async (req, res) => {
   }
 
   try {
-    //Insert into SQLite
     const insertSql = `
       INSERT INTO Account (user_id, acc_type_id, nickname, reference, institution, balance, isActive)
       VALUES (?, ?, ?, ?, ?, ?, 'Y')
@@ -23,14 +20,14 @@ exports.createAccount = async (req, res) => {
         [user_id, acc_type_id, nickname || null, reference || null, institution || null, balance || 0],
         function (err) {
           if (err) reject(err);
-          else resolve(this.lastID); // SQLite auto-generated account_id
+          else resolve(this.lastID); 
         }
       );
     });
 
     console.log(`Account created locally (SQLite ID: ${sqliteResult}) for user ${user_id}`);
 
-    //Try inserting into Oracle
+    
     try {
       const conn = await getOracleConnection();
       const oracleSql = `
@@ -62,7 +59,6 @@ exports.createAccount = async (req, res) => {
         isActive: "Y",
       });
     }
-
     res.status(201).json({
       message: "Account created successfully.",
       account_id: sqliteResult,
@@ -73,13 +69,12 @@ exports.createAccount = async (req, res) => {
   }
 };
 
-//Get all Accounts by user
 exports.getAccountsByUser = async (req, res) => {
   const { user_id } = req.params;
 
   try {
     const query = `
-      SELECT a.account_id, a.user_id, a.nickname, a.reference, a.institution, a.balance,
+      SELECT a.account_id, a.user_id, a.nickname, a.reference, a.institution, a.balance, t.acc_type_id,
              t.accTypeName, t.assetOrLiability
       FROM Account a
       JOIN Account_Type t ON a.acc_type_id = t.acc_type_id
@@ -97,7 +92,6 @@ exports.getAccountsByUser = async (req, res) => {
   }
 };
 
-//Update Account /Uses both account_id + user_id (composite key)
 exports.updateAccount = async (req, res) => {
   const { account_id } = req.params;
   const { user_id, acc_type_id, nickname, reference, institution, balance } = req.body;
@@ -107,7 +101,6 @@ exports.updateAccount = async (req, res) => {
   }
 
   try {
-    //Update SQLite
     const updateSql = `
       UPDATE Account
       SET acc_type_id = ?, nickname = ?, reference = ?, institution = ?, balance = ?
@@ -122,7 +115,7 @@ exports.updateAccount = async (req, res) => {
     });
     console.log(`Account ${account_id} (user ${user_id}) updated locally.`);
 
-    //Try to sync Oracle
+    
     try {
       const conn = await getOracleConnection();
       const oracleSql = `
@@ -162,8 +155,6 @@ exports.updateAccount = async (req, res) => {
   }
 };
 
-//Soft Delete Account
-
 exports.deleteAccount = async (req, res) => {
   const { account_id } = req.params;
   const { user_id } = req.body;
@@ -173,7 +164,6 @@ exports.deleteAccount = async (req, res) => {
   }
 
   try {
-    //SQLite soft delete
     const sqliteSql = `
       UPDATE Account
       SET isActive = 'N'
@@ -184,7 +174,7 @@ exports.deleteAccount = async (req, res) => {
     });
     console.log(`Account ${account_id} (user ${user_id}) marked inactive in SQLite.`);
 
-    //Oracle sync
+   
     try {
       const conn = await getOracleConnection();
       const oracleSql = `

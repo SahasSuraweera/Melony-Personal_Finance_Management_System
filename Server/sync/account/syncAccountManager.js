@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getOracleConnection } = require("../db/oracleDB");
+const { getOracleConnection } = require("../../db/oracleDB");
 
 const pendingFile = path.join(__dirname, "pendingAccountSync.json");
 

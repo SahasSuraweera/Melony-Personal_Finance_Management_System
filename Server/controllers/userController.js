@@ -2,11 +2,10 @@ const oracledb = require('oracledb');
 const bcrypt = require('bcrypt');
 const { getOracleConnection } = require('../db/oracleDB');
 const { sqliteDb } = require('../db/sqliteDB');
-const { savePendingAction } = require('../sync/savePendingAction'); 
-const { savePendingLocalAction } = require('../sync/localSyncManager');
-const { syncPendingLocalActions } = require('../sync/localSyncManager');
+const { savePendingUserAction } = require('../sync/user/savePendingUserAction'); 
+const { savePendingUserLocalAction } = require('../sync/user/syncUserLocalManager');
+const { syncPendingUserLocalActions } = require('../sync/user/syncUserLocalManager');
 
-//Create a new user in Oracle and sync to SQLite
 exports.createUser = async (req, res) => {
   const {
     firstName,
@@ -32,7 +31,6 @@ exports.createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     conn = await getOracleConnection();
 
-    // 🔹 Insert user in Oracle
     const insertSql = `
       INSERT INTO UserInfo (firstName, lastName, email, password, occupation, houseNo, streetName, city, phone, isDeleted)
       VALUES (:firstName, :lastName, :email, :password, :occupation, :houseNo, :streetName, :city, :phone, 'N')
@@ -56,7 +54,6 @@ exports.createUser = async (req, res) => {
     const newUserId = result.outBinds.user_id[0];
     console.log(`User inserted in Oracle with ID: ${newUserId}`);
 
-    //Fetch the new Oracle record
     const selectSql = `
       SELECT user_id, firstName, lastName, email, password, occupation,
              houseNo, streetName, city, phone, isDeleted
@@ -66,7 +63,6 @@ exports.createUser = async (req, res) => {
     const userResult = await conn.execute(selectSql, [newUserId]);
     const user = userResult.rows[0];
 
-    //Insert same record into SQLite
     const insertLocal = `
       INSERT OR REPLACE INTO UserInfo
       (user_id, firstName, lastName, email, password, occupation,
@@ -92,8 +88,7 @@ exports.createUser = async (req, res) => {
       sqliteDb.run(insertLocal, params, (err) => {
         if (err) {
           console.error('SQLite insert failed:', err.message);
-          //Save locally to retry later
-          savePendingLocalAction('insert_local_user', user);
+          savePendingUserLocalAction('insert_local_user', user);
           resolve();
         } else {
           console.log('User synced into SQLite successfully');
@@ -122,7 +117,6 @@ exports.createUser = async (req, res) => {
   }
 };
 
-//User login (sqlite only)
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -146,14 +140,14 @@ exports.loginUser = async (req, res) => {
 
     if (!user) {
       console.warn(`Login failed: user ${email} not found`);
-      await syncPendingLocalActions();
+      await syncPendingUserLocalActions();
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       console.warn(`Login failed: incorrect password for ${email}`);
-      await syncPendingLocalActions();
+      await syncPendingUserLocalActions();
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
@@ -178,7 +172,40 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-// Update user info (excluding email/password)
+exports.getUserById = async (req, res) => {
+  const { user_id } = req.params;
+
+  if (!user_id) {
+    return res.status(400).json({ error: "User ID is required." });
+  }
+
+  try {
+    const query = `
+      SELECT user_id, firstName, lastName, email, password, occupation,
+             houseNo, streetName, city, phone, isDeleted
+      FROM UserInfo
+      WHERE user_id = ? AND isDeleted = 'N'
+    `;
+
+    const user = await new Promise((resolve, reject) => {
+      sqliteDb.get(query, [user_id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    console.log(`User ${user_id} fetched successfully.`);
+    res.status(200).json(user);
+  } catch (err) {
+    console.error("SQLite fetch user error:", err.message);
+    res.status(500).json({ error: "Failed to fetch user from SQLite." });
+  }
+};
+
 exports.updateUser = async (req, res) => {
   const { user_id } = req.params;
   const { firstName, lastName, occupation, houseNo, streetName, city, phone } = req.body;
@@ -195,7 +222,6 @@ exports.updateUser = async (req, res) => {
   const sqliteParams = [firstName, lastName, occupation, houseNo, streetName, city, phone, user_id];
 
   try {
-    //SQLite update first (always reliable)
     await new Promise((resolve, reject) => {
       sqliteDb.run(sqliteSql, sqliteParams, function (err) {
         if (err) reject(err);
@@ -204,7 +230,6 @@ exports.updateUser = async (req, res) => {
     });
     console.log(`Updated user ${user_id} in SQLite`);
 
-    //Try Oracle next
     try {
       const conn = await getOracleConnection();
       const oracleSql = `
@@ -222,7 +247,7 @@ exports.updateUser = async (req, res) => {
 
     } catch (oracleError) {
       console.warn('Oracle update failed:', oracleError.message);
-      savePendingAction('update', user_id, {
+      savePendingUserAction('update', user_id, {
         firstName, lastName, occupation, houseNo, streetName, city, phone
       });
     }
@@ -235,7 +260,6 @@ exports.updateUser = async (req, res) => {
   }
 }
 
-// Update user email
 exports.updateEmail = async (req, res) => {
   const { user_id } = req.params;
   const { newEmail } = req.body;
@@ -247,7 +271,6 @@ exports.updateEmail = async (req, res) => {
   let conn;
 
   try {
-    //Update Oracle first
     conn = await getOracleConnection();
     const oracleSql = `
       UPDATE UserInfo
@@ -258,7 +281,6 @@ exports.updateEmail = async (req, res) => {
     await conn.commit();
     console.log(`Oracle email updated for user ${user_id}`);
 
-    //Sync update to SQLite
     const sqliteSql = `
       UPDATE UserInfo
       SET email = ?
@@ -268,8 +290,7 @@ exports.updateEmail = async (req, res) => {
       sqliteDb.run(sqliteSql, [newEmail, user_id], (err) => {
         if (err) {
           console.error('SQLite email update failed:', err.message);
-          //Save for later sync
-          savePendingLocalAction('update_local_email', { USER_ID: user_id, EMAIL: newEmail });
+          savePendingUserLocalAction('update_local_email', { USER_ID: user_id, EMAIL: newEmail });
           resolve();
         } else {
           console.log(`SQLite email synced for user ${user_id}`);
@@ -294,7 +315,6 @@ exports.updateEmail = async (req, res) => {
   }
 };
 
-// Update user password
 exports.updatePassword = async (req, res) => {
   const { user_id } = req.params;
   const { newPassword } = req.body;
@@ -304,10 +324,8 @@ exports.updatePassword = async (req, res) => {
   }
 
   try {
-    //Hash password for security
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    //Update SQLite first (offline-safe)
     const sqliteSql = `
       UPDATE UserInfo
       SET password = ?
@@ -320,7 +338,6 @@ exports.updatePassword = async (req, res) => {
     });
     console.log(`SQLite password updated for user ${user_id}`);
 
-    //Try updating Oracle next
     try {
       const conn = await getOracleConnection();
       const oracleSql = `
@@ -334,7 +351,7 @@ exports.updatePassword = async (req, res) => {
       console.log(`Oracle password updated for user ${user_id}`);
     } catch (oracleErr) {
       console.warn("Oracle password update failed:", oracleErr.message);
-      savePendingAction("update", user_id, { password: hashedPassword });
+      savePendingUserAction("update", user_id, { password: hashedPassword });
     }
 
     res.status(200).json({ message: "Password updated successfully" });
@@ -344,8 +361,6 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
-
-//Soft delete user (sets isDeleted = 'Y')
 exports.deleteUser = async (req, res) => {
   const { user_id } = req.params;
 
@@ -360,7 +375,6 @@ exports.deleteUser = async (req, res) => {
   `;
 
   try {
-    // Delete locally first (SQLite)
     await new Promise((resolve, reject) => {
       sqliteDb.run(sqliteSql, [user_id], function (err) {
         if (err) reject(err);
@@ -384,7 +398,7 @@ exports.deleteUser = async (req, res) => {
 
     } catch (oracleError) {
       console.warn('Oracle delete failed:', oracleError.message);
-      savePendingAction('delete', user_id);
+      savePendingUserAction('delete', user_id);
     }
 
     res.status(200).json({ message: 'User soft deleted successfully' });

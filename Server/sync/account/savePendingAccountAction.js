@@ -10,7 +10,6 @@ function savePendingAccountAction(action, account_id, user_id, data = {}) {
       existing = JSON.parse(fs.readFileSync(pendingFile, "utf-8") || "[]");
     }
 
-    // push record with both IDs
     existing.push({
       action,
       account_id,

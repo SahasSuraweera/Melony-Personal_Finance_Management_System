@@ -1,18 +1,18 @@
 const fs = require("fs");
 const path = require("path");
-const { getOracleConnection } = require("../db/oracleDB");
+const { getOracleConnection } = require("../../db/oracleDB");
 
-const pendingFile = path.join(__dirname, "pendingSync.json");
+const pendingFile = path.join(__dirname, "pendingUserSync.json");
 
-async function syncPendingActions() {
+async function syncPendingUserActions() {
   if (!fs.existsSync(pendingFile)) {
-    console.log("No pending sync file found.");
+    console.log("No pending User sync file found.");
     return;
   }
 
   const pending = JSON.parse(fs.readFileSync(pendingFile, "utf-8") || "[]");
   if (pending.length === 0) {
-    console.log("No pending actions to sync.");
+    console.log("No pending User actions to sync.");
     return;
   }
 
@@ -62,7 +62,6 @@ async function syncPendingActions() {
       }
     }
 
-    // Remove successfully synced actions
     const remaining = pending.filter(r => !successful.includes(r));
     fs.writeFileSync(pendingFile, JSON.stringify(remaining, null, 2));
     console.log(`Sync completed. ${successful.length} succeeded, ${remaining.length} remaining.`);
@@ -74,4 +73,4 @@ async function syncPendingActions() {
   }
 }
 
-module.exports = { syncPendingActions };
+module.exports = { syncPendingUserActions };
