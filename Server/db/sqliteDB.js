@@ -1,8 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-//const dbPath = path.join(__dirname, '../../Database/finance_system.sqlite');
-const dbPath = 'C:\\SQLite\\pfms.db';
+const dbPath = path.join(__dirname, '../../Database/finance_system.sqlite');
+//const dbPath = 'C:\\SQLite\\pfms.db';
 
 const sqliteDb = new sqlite3.Database(dbPath, (err) => {
   if (err) {
