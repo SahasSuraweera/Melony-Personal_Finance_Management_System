@@ -3,21 +3,49 @@ const { getOracleConnection } = require("../db/oracleDB");
 const { savePendingTransactionAction } = require("../sync/transaction/savePendingTransactionAction");
 
 exports.createTransaction = async (req, res) => {
-  const { user_id, account_id, category_id, amount, transactionType, description } = req.body;
+  const {
+    user_id,
+    account_id,
+    category_id,
+    amount,
+    transactionType,
+    description,
+    tranDate, // optional (from frontend)
+    tranTime, // optional (from frontend)
+  } = req.body;
 
   if (!user_id || !account_id || !amount || !transactionType) {
-    return res.status(400).json({ error: "User ID, Account ID, Amount, and Transaction Type are required." });
+    return res.status(400).json({
+      error: "User ID, Account ID, Amount, and Transaction Type are required.",
+    });
   }
 
+  // Default to current date and time if not provided
+  const currentDate = tranDate || new Date().toISOString().split("T")[0]; // yyyy-mm-dd
+  const currentTime = tranTime || new Date().toISOString(); // full timestamp
+
   try {
+    // 🔹 Insert into SQLite
     const insertSql = `
-      INSERT INTO Transaction_Info (user_id, account_id, category_id, amount, transactionType, description)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO Transaction_Info (
+        user_id, account_id, category_id, amount, transactionType, description, tranDate, tranTime
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
+
     const sqliteResult = await new Promise((resolve, reject) => {
       sqliteDb.run(
         insertSql,
-        [user_id, account_id, category_id || null, amount, transactionType, description || null],
+        [
+          user_id,
+          account_id,
+          category_id || null,
+          amount,
+          transactionType,
+          description || null,
+          currentDate,
+          currentTime,
+        ],
         function (err) {
           if (err) reject(err);
           else resolve(this.lastID);
@@ -25,17 +53,22 @@ exports.createTransaction = async (req, res) => {
       );
     });
 
-    console.log(`Transaction created locally (SQLite ID: ${sqliteResult}) for user ${user_id}`);
+    console.log(
+      `✅ Transaction created locally (SQLite ID: ${sqliteResult}) for user ${user_id}`
+    );
 
+    // 🔸 Sync to Oracle
     try {
       const conn = await getOracleConnection();
       const oracleSql = `
         INSERT INTO Transaction_Info (
-          transaction_id, user_id, account_id, category_id, amount, transactionType, description
-        ) VALUES (
-          :transaction_id, :user_id, :account_id, :category_id, :amount, :transactionType, :description
+          transaction_id, user_id, account_id, category_id, amount, transactionType, description, tranDate, tranTime
+        )
+        VALUES (
+          :transaction_id, :user_id, :account_id, :category_id, :amount, :transactionType, :description, TO_DATE(:tranDate, 'YYYY-MM-DD'), TO_TIMESTAMP(:tranTime, 'YYYY-MM-DD"T"HH24:MI:SS.FF')
         )
       `;
+
       await conn.execute(oracleSql, {
         transaction_id: sqliteResult,
         user_id,
@@ -44,27 +77,41 @@ exports.createTransaction = async (req, res) => {
         amount,
         transactionType,
         description,
+        tranDate: currentDate,
+        tranTime: currentTime,
       });
+
       await conn.commit();
       await conn.close();
-      console.log(`Transaction ${sqliteResult} synced to Oracle.`);
+
+      console.log(`☁️ Transaction ${sqliteResult} synced to Oracle.`);
     } catch (oracleErr) {
-      console.warn(`Oracle insert failed for Transaction ${sqliteResult}: ${oracleErr.message}`);
+      console.warn(
+        `⚠️ Oracle insert failed for Transaction ${sqliteResult}: ${oracleErr.message}`
+      );
       savePendingTransactionAction("insert_transaction", sqliteResult, user_id, {
         account_id,
         category_id,
         amount,
         transactionType,
         description,
+        tranDate: currentDate,
+        tranTime: currentTime,
       });
     }
 
-    res.status(201).json({ message: "Transaction created successfully.", transaction_id: sqliteResult });
+    res.status(201).json({
+      message: "Transaction created successfully.",
+      transaction_id: sqliteResult,
+      tranDate: currentDate,
+      tranTime: currentTime,
+    });
   } catch (err) {
     console.error("SQLite insert error:", err.message);
     res.status(500).json({ error: "Failed to create transaction." });
   }
 };
+
 
 exports.getAllTransactions = async (req, res) => {
   const { user_id } = req.params;
