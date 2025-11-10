@@ -40,7 +40,7 @@ function App() {
               <Route path="/reports/preview" element={<ReportPreviewPage />} />
               <Route path="/accounts" element={<Accounts />} />
               <Route path="/create/account" element={<AccountsCreate />} />
-              <Route path="/update/account/:accountId" element={<AccountsUpdate />} />
+              <Route path="/update/account/:account_id" element={<AccountsUpdate />} />
             </Routes>
           </div>
         </div>

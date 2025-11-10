@@ -13,8 +13,8 @@ function Sidebar() {
         <Link to="/transactions">Transactions</Link>
         <Link to="/budgets">Budgets</Link>
         <Link to="/goals">Goals</Link>
-        <Link to="/notes">Notes</Link>
         <Link to="/register">Register</Link>
+        <Link to="/notes">Notes</Link>
       </nav>
     </div>
   );

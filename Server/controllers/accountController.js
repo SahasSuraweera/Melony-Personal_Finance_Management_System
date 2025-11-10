@@ -92,6 +92,51 @@ exports.getAccountsByUser = async (req, res) => {
   }
 };
 
+exports.getAccountById = async (req, res) => {
+  const { account_id } = req.params;      // e.g. /accounts/12
+  const { user_id } = req.query;          // e.g. ?user_id=1
+
+  if (!account_id || !user_id) {
+    return res.status(400).json({ error: "Account ID and User ID are required." });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        a.account_id,
+        a.user_id,
+        a.acc_type_id,
+        a.nickname,
+        a.reference,
+        a.institution,
+        a.balance,
+        a.isActive,
+        t.accTypeName,
+        t.assetOrLiability
+      FROM Account a
+      JOIN Account_Type t ON a.acc_type_id = t.acc_type_id
+      WHERE a.account_id = ? AND a.user_id = ?;
+    `;
+
+    const account = await new Promise((resolve, reject) => {
+      sqliteDb.get(query, [account_id, user_id], (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      });
+    });
+
+    if (!account) {
+      return res.status(404).json({ error: "Account not found for the given user." });
+    }
+
+    res.status(200).json(account);
+  } catch (err) {
+    console.error("❌ Error fetching account by ID:", err.message);
+    res.status(500).json({ error: "Failed to fetch account details." });
+  }
+};
+
+
 exports.updateAccount = async (req, res) => {
   const { account_id } = req.params;
   const { user_id, acc_type_id, nickname, reference, institution, balance } = req.body;
