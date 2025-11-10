@@ -1,46 +1,59 @@
-.account-list {
-  margin-top: 20px;
+.account-update-container {
+  max-width: 500px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
 }
 
-.account-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f9f9f9;
+.account-update-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.account-update-form .form-group {
+  margin-bottom: 15px;
+}
+
+.account-update-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.account-update-form input,
+.account-update-form select {
+  width: 100%;
   padding: 10px;
   border-radius: 8px;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  border: 1px solid #ccc;
 }
 
-.edit-btn {
-  background-color: #28a745;
-  color: white;
+.update-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.update-btn {
+  background-color:  #1fa83f;
+  color: #fff;
   border: none;
-  border-radius: 5px;
-  padding: 6px 12px;
+  padding: 10px 15px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
-.edit-btn:hover {
-  background-color: #218838;
-}
-
-.view-all-container {
-  margin-top: 15px;
-  text-align: center;
-}
-
-.view-all-btn {
-  background-color: #007bff;
-  color: white;
-  padding: 10px 20px;
+.cancel-btn {
+  background-color: #888;
+  color: #fff;
   border: none;
-  border-radius: 6px;
+  padding: 10px 15px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s;
 }
 
-.view-all-btn:hover {
+.update-btn:hover {
   background-color: #0056b3;
 }
