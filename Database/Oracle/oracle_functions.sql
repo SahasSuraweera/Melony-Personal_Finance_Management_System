@@ -216,64 +216,65 @@ BEGIN
                 TO_CHAR(tranDate, 'YYYY-MM') AS month_label,
                 SUM(CASE WHEN transactionType = 'Income' THEN amount ELSE 0 END) AS total_income,
                 SUM(CASE WHEN transactionType = 'Expense' THEN amount ELSE 0 END) AS total_expense,
-                SUM(CASE WHEN transactionType = 'Income' THEN amount ELSE 0 END) -
-                SUM(CASE WHEN transactionType = 'Expense' THEN amount ELSE 0 END) AS net_savings
+                (SUM(CASE WHEN transactionType = 'Income' THEN amount ELSE 0 END)
+                - SUM(CASE WHEN transactionType = 'Expense' THEN amount ELSE 0 END)) AS net_savings
             FROM Transaction_Info
             WHERE user_id = p_user_id
             GROUP BY TO_CHAR(tranDate, 'YYYY-MM')
         ),
 
-        last_6_months AS (
-            SELECT *
+        last_actual_month AS (
+            SELECT MAX(TO_DATE(month_label, 'YYYY-MM')) AS last_month
             FROM monthly_summary
-            WHERE TO_DATE(month_label, 'YYYY-MM') >= ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -6)
-            ORDER BY month_label
         ),
 
-        base_3_months AS (
-            SELECT net_savings
-            FROM last_6_months
-            ORDER BY month_label DESC
-            FETCH FIRST 3 ROWS ONLY
-        ),
-        avg_last_3 AS (
-            SELECT ROUND(AVG(net_savings), 2) AS avg_saving FROM base_3_months
+        last_3_months AS (
+            SELECT month_label, net_savings,
+                   ROW_NUMBER() OVER (ORDER BY TO_DATE(month_label, 'YYYY-MM') DESC) AS rn
+            FROM monthly_summary
+            WHERE TO_DATE(month_label, 'YYYY-MM') <= (SELECT last_month FROM last_actual_month)
         ),
 
-        step1 AS (
+        -- Forecast Month 1
+        f1 AS (
             SELECT 
-                TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 1), 'YYYY-MM') AS month_label,
-                (SELECT avg_saving FROM avg_last_3) AS forecasted_savings
-            FROM dual
-        ),
-        step2 AS (
-            SELECT 
-                TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 2), 'YYYY-MM') AS month_label,
-                ROUND((
-                    (SELECT AVG(net_savings)
-                     FROM (SELECT net_savings FROM base_3_months
-                           UNION ALL SELECT forecasted_savings FROM step1))
-                ), 2) AS forecasted_savings
-            FROM dual
-        ),
-        step3 AS (
-            SELECT 
-                TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), 3), 'YYYY-MM') AS month_label,
-                ROUND((
-                    (SELECT AVG(net_savings)
-                     FROM (SELECT net_savings FROM base_3_months
-                           UNION ALL SELECT forecasted_savings FROM step1
-                           UNION ALL SELECT forecasted_savings FROM step2))
-                ), 2) AS forecasted_savings
+                TO_CHAR(ADD_MONTHS((SELECT last_month FROM last_actual_month), 1), 'YYYY-MM') AS month_label,
+                (SELECT ROUND(AVG(net_savings), 2) FROM last_3_months WHERE rn <= 3) AS forecasted_savings
             FROM dual
         ),
 
-        forecast_all AS (
-            SELECT month_label, forecasted_savings FROM step1
-            UNION ALL
-            SELECT month_label, forecasted_savings FROM step2
-            UNION ALL
-            SELECT month_label, forecasted_savings FROM step3
+        -- Forecast Month 2
+        f2 AS (
+            SELECT 
+                TO_CHAR(ADD_MONTHS((SELECT last_month FROM last_actual_month), 2), 'YYYY-MM') AS month_label,
+                (SELECT ROUND(AVG(value), 2)
+                 FROM (
+                     SELECT net_savings AS value FROM last_3_months WHERE rn <= 2
+                     UNION ALL
+                     SELECT forecasted_savings AS value FROM f1
+                 )) AS forecasted_savings
+            FROM dual
+        ),
+
+        -- Forecast Month 3
+        f3 AS (
+            SELECT 
+                TO_CHAR(ADD_MONTHS((SELECT last_month FROM last_actual_month), 3), 'YYYY-MM') AS month_label,
+                (SELECT ROUND(AVG(value), 2)
+                 FROM (
+                     SELECT net_savings AS value FROM last_3_months WHERE rn = 1
+                     UNION ALL
+                     SELECT forecasted_savings AS value FROM f1
+                     UNION ALL
+                     SELECT forecasted_savings AS value FROM f2
+                 )) AS forecasted_savings
+            FROM dual
+        ),
+
+        all_forecasts AS (
+            SELECT * FROM f1
+            UNION ALL SELECT * FROM f2
+            UNION ALL SELECT * FROM f3
         )
 
         SELECT 
@@ -282,20 +283,21 @@ BEGIN
             NVL(m.total_expense, 0) AS total_expense,
             NVL(m.net_savings, 0) AS actual_savings,
             NULL AS forecasted_savings
-        FROM last_6_months m
+        FROM monthly_summary m
+        WHERE TO_DATE(m.month_label, 'YYYY-MM') <= (SELECT last_month FROM last_actual_month)
 
         UNION ALL
 
         SELECT 
             f.month_label,
-            NULL, NULL, NULL, f.forecasted_savings
-        FROM forecast_all f
+            NULL AS total_income,
+            NULL AS total_expense,
+            NULL AS actual_savings,
+            f.forecasted_savings
+        FROM all_forecasts f
+
         ORDER BY month_label;
 
     RETURN rc;
 END;
 /
-
-VAR rc REFCURSOR;
-EXEC :rc := fn_forecasted_savings_trends(1);
-PRINT rc;

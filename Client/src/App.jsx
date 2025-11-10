@@ -9,6 +9,7 @@ import Goals from "./pages/Goals";
 import Notes from "./pages/Notes";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ReportPreviewPage from "./components/ReportPreview/ReportPreviewPage";
 import "./App.css"; 
 import "./Styles/Navbar.css";   
 import "./Styles/Sidebar.css";
@@ -29,6 +30,7 @@ function App() {
               <Route path="/notes" element={<Notes />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/reports/preview" element={<ReportPreviewPage />} />
             </Routes>
           </div>
         </div>
