@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "oracledb": "^6.10.0"
+    "oracledb": "^6.10.0",
+    "pdfkit": "^0.17.2"
   }
 }

@@ -31,6 +31,9 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const savingGoalRoutes = require('./routes/savingGoalRoutes');
 const savingTransactionRoutes = require('./routes/savingTransactionRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const reportPreviewRoutes = require("./routes/reportPreviewRoutes");
+const reportRoutes = require('./routes/reportRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/notes', noteRoutes);
@@ -41,6 +44,9 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/savingsGoals', savingGoalRoutes);
 app.use('/api/savingTransactions', savingTransactionRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use("/api/reportPreviews", reportPreviewRoutes);
+app.use('/api/reports', reportRoutes);
 
 const PORT = process.env.PORT || 3000;
 
