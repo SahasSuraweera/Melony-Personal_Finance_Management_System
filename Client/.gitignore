@@ -22,5 +22,3 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Ignore local SQLite databases
-Database/finance_system.sqlite
