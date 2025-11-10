@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "../Styles/GetUserAccount.css";
+import "../Styles/Accounts.css";
 
 function GetUserAccount() {
   const [accounts, setAccounts] = useState([]);

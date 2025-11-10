@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import "../Styles/CreateAccount.css";
+import "../Styles/AccountsUpdate.css";
 
 function UpdateUserAccount() {
   const { account_id } = useParams();

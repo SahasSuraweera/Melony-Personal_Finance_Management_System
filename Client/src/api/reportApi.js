@@ -50,6 +50,8 @@ export const downloadReportPDF = (type, userId, year, month) => {
     case "forecasted-savings":
       url += `/forecasted-savings-report/${userId}/pdf`;
       break;
+    default:
+      throw new Error(`Unsupported report type`);
   }
 
   window.open(url, "_blank");

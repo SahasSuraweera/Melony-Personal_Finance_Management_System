@@ -3,13 +3,20 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
+
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Accounts from "./pages/Accounts";
+import AccountsCreate from "./pages/AccountsCreate";
+import AccountsUpdate from "./pages/AccountsUpdate";
+
 import Transactions from "./pages/Transactions";
 import Budgets from "./pages/Budgets";
 import Goals from "./pages/Goals";
 import Notes from "./pages/Notes";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+
 import ReportPreviewPage from "./components/ReportPreview/ReportPreviewPage";
+
 import "./App.css"; 
 import "./Styles/Navbar.css";   
 import "./Styles/Sidebar.css";
@@ -31,6 +38,9 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/reports/preview" element={<ReportPreviewPage />} />
+              <Route path="/accounts" element={<Accounts />} />
+              <Route path="/create/account" element={<AccountsCreate />} />
+              <Route path="/update/account/:accountId" element={<AccountsUpdate />} />
             </Routes>
           </div>
         </div>
