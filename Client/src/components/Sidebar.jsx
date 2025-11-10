@@ -8,11 +8,12 @@ function Sidebar() {
       
       <nav>
         <Link to="/">Dashboard</Link>
+        <Link to="/Users">Users</Link>
+        <Link to="/Accounts">Accounts</Link>
         <Link to="/transactions">Transactions</Link>
         <Link to="/budgets">Budgets</Link>
         <Link to="/goals">Goals</Link>
         <Link to="/notes">Notes</Link>
-        <Link to="/login">Login</Link>
         <Link to="/register">Register</Link>
       </nav>
     </div>

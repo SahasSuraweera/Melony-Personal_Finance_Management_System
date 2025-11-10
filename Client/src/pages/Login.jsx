@@ -1,21 +1,41 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";  // 👈 added Link
+import { loginUser } from "../api/userService";
 import "../Styles/Login.css";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // For now, just log the values
-    console.log("Email:", email, "Password:", password);
-    alert("Login submitted! (Add real authentication later)");
+    setError("");
+
+    try {
+      const response = await loginUser({ email, password });
+
+      if (response.message === "Login successful") {
+        localStorage.setItem("user", JSON.stringify(response.user));
+        alert("Welcome " + response.user.firstName + "!");
+        navigate("/"); // Redirect to dashboard
+      } else {
+        setError("Invalid credentials. Please try again.");
+      }
+    } catch (err) {
+      setError(
+        err.response?.data?.error || "Server error, please try again later."
+      );
+    }
   };
 
   return (
     <div className="login-container">
       <div className="login-box">
         <h2>Login</h2>
+        {error && <p className="error">{error}</p>}
+
         <form onSubmit={handleSubmit}>
           <div className="input-group">
             <label>Email</label>
@@ -43,6 +63,14 @@ function Login() {
             Login
           </button>
         </form>
+
+      
+        <p className="signup-link">
+          Don’t have an account?{" "}
+          <Link to="/register" className="link">
+            Sign up here
+          </Link>
+        </p>
       </div>
     </div>
   );

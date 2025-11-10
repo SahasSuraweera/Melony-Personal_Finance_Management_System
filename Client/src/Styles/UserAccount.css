@@ -1,0 +1,43 @@
+.user-account-container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 25px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-info input {
+  padding: 8px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.user-info button {
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background-color: #2b2d42;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.user-info button:hover {
+  background-color: #3a3d5a;
+}
+
+.delete-btn {
+  background-color: #ef233c;
+}
+
+.delete-btn:hover {
+  background-color: #d90429;
+}

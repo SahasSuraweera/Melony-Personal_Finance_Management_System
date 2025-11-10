@@ -11,3 +11,8 @@ export const registerUser = async (userData) => {
     throw err;
   }
 };
+
+ export const loginUser = async (credentials) => {
+  const response = await axios.post(`${API_URL}/login`, credentials);
+  return response.data; // Expecting { message: "Login successful", user: {...} }
+};
