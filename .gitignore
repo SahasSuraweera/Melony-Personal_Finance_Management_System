@@ -1,0 +1,2 @@
+# Ignore SQLite database files
+Database/finance_system.sqlite
