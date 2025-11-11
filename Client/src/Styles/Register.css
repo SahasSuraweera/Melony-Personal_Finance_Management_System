@@ -1,70 +1,108 @@
+/* === General Layout === */
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #f4f6f8;
+  background: linear-gradient(135deg, #e0eafc, #cfdef3);
+  font-family: "Poppins", sans-serif;
 }
 
+/* === Registration Box === */
 .register-box {
-  background-color: white;
-  padding: 40px 30px;
+  background-color: #ffffff;
+  padding: 40px 35px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   width: 400px;
+  transition: all 0.3s ease;
 }
 
+.register-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* === Heading === */
 .register-box h2 {
-  margin-bottom: 25px;
   text-align: center;
-  color: #333;
+  margin-bottom: 25px;
+  color: #333333;
+  font-size: 26px;
+  letter-spacing: 0.5px;
 }
 
+/* === Input Group === */
 .input-group {
-  margin-bottom: 15px;
-  text-align: left;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
 }
 
 .input-group label {
-  display: block;
-  margin-bottom: 5px;
   font-weight: 500;
-  color: #555;
+  margin-bottom: 6px;
+  color: #444;
+  font-size: 14px;
 }
 
 .input-group input {
-  width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #ccc;
-  font-size: 14px;
-  box-sizing: border-box;
+  font-size: 15px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .input-group input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
   outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
+/* === Error Messages === */
+.error {
+  color: #e63946;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* === Submit Button === */
 .register-button {
   width: 100%;
   padding: 12px;
-  background-color: #007bff;
+  background-color: #4a90e2;
   color: white;
+  font-size: 16px;
+  font-weight: 600;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
 .register-button:hover {
-  background-color: #0056b3;
+  background-color: #357abd;
+  transform: translateY(-2px);
 }
-.error {
-  color: red;
-  font-size: 12px;
-  margin-top: 3px;
-  display: block;
+
+.register-button:disabled {
+  background-color: #a6c8f0;
+  cursor: not-allowed;
+}
+
+/* === Responsive Design === */
+@media (max-width: 480px) {
+  .register-box {
+    width: 90%;
+    padding: 25px 20px;
+  }
+
+  .register-box h2 {
+    font-size: 22px;
+  }
+
+  .input-group input {
+    font-size: 14px;
+  }
 }

@@ -5,6 +5,7 @@ import "../Styles/Accounts.css";
 
 function GetUserAccount() {
   const [accounts, setAccounts] = useState([]);
+  const [savingGoals, setSavingGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -14,13 +15,14 @@ function GetUserAccount() {
 
   useEffect(() => {
     if (user_id) {
-      fetchUserAccounts(user_id);
+      Promise.all([fetchUserAccounts(user_id), fetchSavingGoals(user_id)]);
     } else {
       setError("User not logged in");
       setLoading(false);
     }
   }, [user_id]);
 
+  // ✅ Fetch user accounts
   const fetchUserAccounts = async (user_id) => {
     try {
       const response = await axios.get(
@@ -35,33 +37,77 @@ function GetUserAccount() {
     }
   };
 
-  const handleCreate = () => {
-    navigate("/create/account");
-  };
-
-  const handleUpdate = (account_id) => {
-    navigate(`/update/account/${account_id}`);
-  };
-
-  const handleDeactivate = async (account_id) => {
-    if (!window.confirm("Are you sure you want to deactivate this account?"))
-      return;
-
+  // ✅ Fetch user's active saving goals
+  const fetchSavingGoals = async (user_id) => {
     try {
-      await axios.put(`http://localhost:3000/api/accounts/${account_id}/deactivate`, {
-        user_id,
+      const res = await axios.get(
+        `http://localhost:3000/api/savingsGoals/user/${user_id}`
+      );
+      const activeGoals = res.data.filter(
+        (g) => (g.ISACTIVE || g.isActive || "").toUpperCase() === "Y"
+      );
+      setSavingGoals(activeGoals);
+    } catch (err) {
+      console.error("Failed to fetch saving goals:", err);
+    }
+  };
+
+  // ✅ Check if account is linked to an active saving goal
+  const isGoalLinked = (account_id) =>
+    savingGoals.some(
+      (goal) => Number(goal.ACCOUNT_ID || goal.account_id) === Number(account_id)
+    );
+
+  const handleCreate = () => navigate("/create/account");
+  const handleTransfer = () => navigate("/create/transaction/transfer");
+  const handleUpdate = (account_id) => navigate(`/update/account/${account_id}`);
+
+  // ✅ Handle deactivate account
+  const handleDeactivate = async (account_id) => {
+    try {
+      // 🚫 Block if linked to goal
+      if (isGoalLinked(account_id)) {
+        alert(
+          "⚠️ This account is linked to an active saving goal. Please delete the goal first before deactivating this account."
+        );
+        return;
+      }
+
+      const res = await axios.get(
+        `http://localhost:3000/api/accounts/${account_id}?user_id=${user_id}`
+      );
+      const account = res.data;
+
+      if (account.balance && Number(account.balance) !== 0) {
+        const confirmProceed = window.confirm(
+          `⚠️ This account "${account.nickname || account.accTypeName}" still has a balance of Rs. ${Number(
+            account.balance
+          ).toLocaleString()}.\n\nPlease transfer or pay this amount before deactivating.\nIf you continue, data will be lost.\n\nContinue anyway?`
+        );
+        if (!confirmProceed) return;
+      } else {
+        const confirmDeactivate = window.confirm(
+          `Are you sure you want to deactivate "${account.nickname || account.accTypeName}"?`
+        );
+        if (!confirmDeactivate) return;
+      }
+
+      await axios.delete(`http://localhost:3000/api/accounts/${account_id}`, {
+        data: { user_id },
       });
-      alert("Account deactivated successfully!");
+
+      alert("✅ Account deactivated successfully!");
       fetchUserAccounts(user_id);
     } catch (err) {
-      console.error("Deactivation failed:", err);
-      alert("Failed to deactivate account.");
+      console.error("❌ Deactivation failed:", err);
+      alert("Failed to deactivate account. Please try again later.");
     }
   };
 
   if (loading) return <p>Loading accounts...</p>;
   if (error) return <p className="error">{error}</p>;
 
+  // 🟢 Categorize accounts
   const assets = accounts.filter((acc) => acc.assetOrLiability === "Asset");
   const liabilities = accounts.filter(
     (acc) => acc.assetOrLiability === "Liability"
@@ -71,9 +117,14 @@ function GetUserAccount() {
     <div className="user-accounts-container">
       <div className="accounts-header">
         <h2>My Wallets (Accounts)</h2>
-        <button className="create-btn" onClick={handleCreate}>
-          ➕ Create Account
-        </button>
+        <div className="accounts-actions">
+          <button className="create-btn" onClick={handleCreate}>
+            ➕ Create Account
+          </button>
+          <button className="transfer-btn" onClick={handleTransfer}>
+            💸 Transfer Money
+          </button>
+        </div>
       </div>
 
       {/* 🟢 ASSETS SECTION */}
@@ -83,38 +134,62 @@ function GetUserAccount() {
           <p className="no-data">No asset accounts found.</p>
         ) : (
           <div className="wallet-cards">
-            {assets.map((acc) => (
-              <div key={acc.account_id} className="wallet-card asset-card">
-                <div className="wallet-header">
-                  {acc.accTypeName} ({acc.assetOrLiability})
-                </div>
+            {assets.map((acc) => {
+              const linked = isGoalLinked(acc.account_id);
+              return (
+                <div
+                  key={acc.account_id}
+                  className={`wallet-card asset-card ${
+                    linked ? "goal-linked-card" : ""
+                  }`}
+                >
+                  <div className="wallet-header">
+                    {acc.accTypeName} ({acc.assetOrLiability})
+                  </div>
 
-                <div className="wallet-balance">
-                  Rs. {Number(acc.balance).toLocaleString()}
-                </div>
+                  {/* 🏆 Move badge to second row */}
+                  {linked && (
+                    <div className="goal-badge-row">
+                      <span className="goal-badge" title="Linked to a Saving Goal">
+                        🏆 Goal Linked
+                      </span>
+                    </div>
+                  )}
 
-                <div className="wallet-meta">
-                  <p><strong>Nickname:</strong> {acc.nickname || "N/A"}</p>
-                  <p><strong>Reference:</strong> {acc.reference || "N/A"}</p>
-                  <p><strong>Institution:</strong> {acc.institution || "N/A"}</p>
+                  <div className="wallet-balance">
+                    Rs. {Number(acc.balance).toLocaleString()}
+                  </div>
+                  <div className="wallet-meta">
+                    <p>
+                      <strong>Nickname:</strong> {acc.nickname || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Reference:</strong> {acc.reference || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Institution:</strong> {acc.institution || "N/A"}
+                    </p>
+                  </div>
+                  <div className="wallet-actions">
+                    <button
+                      className="wallet-btn update-btn"
+                      onClick={() => handleUpdate(acc.account_id)}
+                    >
+                      Update
+                    </button>
+                    <button
+                      className={`wallet-btn deactivate-btn ${
+                        linked ? "disabled-btn" : ""
+                      }`}
+                      onClick={() => handleDeactivate(acc.account_id)}
+                      disabled={linked}
+                    >
+                      Deactivate
+                    </button>
+                  </div>
                 </div>
-
-                <div className="wallet-actions">
-                  <button
-                    className="wallet-btn update-btn"
-                    onClick={() => handleUpdate(acc.account_id)}
-                  >
-                    Update
-                  </button>
-                  <button
-                    className="wallet-btn deactivate-btn"
-                    onClick={() => handleDeactivate(acc.account_id)}
-                  >
-                    Deactivate
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -126,38 +201,62 @@ function GetUserAccount() {
           <p className="no-data">No liability accounts found.</p>
         ) : (
           <div className="wallet-cards">
-            {liabilities.map((acc) => (
-              <div key={acc.account_id} className="wallet-card liability-card">
-                <div className="wallet-header">
-                  {acc.accTypeName} ({acc.assetOrLiability})
-                </div>
+            {liabilities.map((acc) => {
+              const linked = isGoalLinked(acc.account_id);
+              return (
+                <div
+                  key={acc.account_id}
+                  className={`wallet-card liability-card ${
+                    linked ? "goal-linked-card" : ""
+                  }`}
+                >
+                  <div className="wallet-header">
+                    {acc.accTypeName} ({acc.assetOrLiability})
+                  </div>
 
-                <div className="wallet-balance">
-                  Rs. {Number(acc.balance).toLocaleString()}
-                </div>
+                  {/* 🏆 Move badge to second row */}
+                  {linked && (
+                    <div className="goal-badge-row">
+                      <span className="goal-badge" title="Linked to a Saving Goal">
+                        🏆 Goal Linked
+                      </span>
+                    </div>
+                  )}
 
-                <div className="wallet-meta">
-                  <p><strong>Nickname:</strong> {acc.nickname || "N/A"}</p>
-                  <p><strong>Reference:</strong> {acc.reference || "N/A"}</p>
-                  <p><strong>Institution:</strong> {acc.institution || "N/A"}</p>
+                  <div className="wallet-balance">
+                    Rs. {Number(acc.balance).toLocaleString()}
+                  </div>
+                  <div className="wallet-meta">
+                    <p>
+                      <strong>Nickname:</strong> {acc.nickname || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Reference:</strong> {acc.reference || "N/A"}
+                    </p>
+                    <p>
+                      <strong>Institution:</strong> {acc.institution || "N/A"}
+                    </p>
+                  </div>
+                  <div className="wallet-actions">
+                    <button
+                      className="wallet-btn update-btn"
+                      onClick={() => handleUpdate(acc.account_id)}
+                    >
+                      Update
+                    </button>
+                    <button
+                      className={`wallet-btn deactivate-btn ${
+                        linked ? "disabled-btn" : ""
+                      }`}
+                      onClick={() => handleDeactivate(acc.account_id)}
+                      disabled={linked}
+                    >
+                      Deactivate
+                    </button>
+                  </div>
                 </div>
-
-                <div className="wallet-actions">
-                  <button
-                    className="wallet-btn update-btn"
-                    onClick={() => handleUpdate(acc.account_id)}
-                  >
-                    Update
-                  </button>
-                  <button
-                    className="wallet-btn deactivate-btn"
-                    onClick={() => handleDeactivate(acc.account_id)}
-                  >
-                    Deactivate
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

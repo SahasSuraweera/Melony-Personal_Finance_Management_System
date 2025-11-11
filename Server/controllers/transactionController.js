@@ -54,10 +54,9 @@ exports.createTransaction = async (req, res) => {
     });
 
     console.log(
-      `✅ Transaction created locally (SQLite ID: ${sqliteResult}) for user ${user_id}`
+      `Transaction created locally (SQLite ID: ${sqliteResult}) for user ${user_id}`
     );
 
-    // 🔸 Sync to Oracle
     try {
       const conn = await getOracleConnection();
       const oracleSql = `
@@ -84,10 +83,10 @@ exports.createTransaction = async (req, res) => {
       await conn.commit();
       await conn.close();
 
-      console.log(`☁️ Transaction ${sqliteResult} synced to Oracle.`);
+      console.log(`Transaction ${sqliteResult} synced to Oracle.`);
     } catch (oracleErr) {
       console.warn(
-        `⚠️ Oracle insert failed for Transaction ${sqliteResult}: ${oracleErr.message}`
+        `Oracle insert failed for Transaction ${sqliteResult}: ${oracleErr.message}`
       );
       savePendingTransactionAction("insert_transaction", sqliteResult, user_id, {
         account_id,
@@ -115,33 +114,94 @@ exports.createTransaction = async (req, res) => {
 
 exports.getAllTransactions = async (req, res) => {
   const { user_id } = req.params;
-  if (!user_id) return res.status(400).json({ error: "User ID is required." });
+
+  if (!user_id) {
+    return res.status(400).json({ error: "User ID is required." });
+  }
 
   try {
     const query = `
       SELECT 
-        t.transaction_id, 
-        t.account_id, 
-        t.amount, 
+        t.transaction_id,
+        t.user_id,
+        t.account_id,
+        a.nickname AS account_nickname,
+        t.amount,
         t.transactionType,
-        t.description, 
-        t.tranDate, 
-        t.tranTime, 
-        t.category_id,
+        t.description,
+        t.tranDate,
+        t.tranTime,
         c.categoryName
       FROM Transaction_Info t
+      LEFT JOIN Account a 
+        ON t.account_id = a.account_id 
+        AND t.user_id = a.user_id
       LEFT JOIN Transaction_Category c 
         ON t.category_id = c.category_id
-      WHERE t.isDeleted = 'N' AND t.user_id = ?
+      WHERE t.isDeleted = 'N' 
+        AND t.user_id = ?
+      ORDER BY t.tranDate DESC, t.tranTime DESC
     `;
+
     const rows = await new Promise((resolve, reject) => {
       sqliteDb.all(query, [user_id], (err, rows) => (err ? reject(err) : resolve(rows)));
     });
 
     res.status(200).json(rows);
   } catch (err) {
-    console.error("Fetch error:", err.message);
+    console.error("❌ Error fetching transactions:", err.message);
     res.status(500).json({ error: "Failed to fetch transactions." });
+  }
+};
+
+exports.getTransactionById = async (req, res) => {
+  const { transaction_id } = req.params;  // must match route param
+  const { user_id } = req.query;
+
+  console.log("Received transaction_id:", transaction_id);
+  console.log("Received user_id:", user_id);
+
+  if (!transaction_id || !user_id) {
+    return res.status(400).json({ error: "Transaction ID and user_id are required." });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        t.transaction_id,
+        t.user_id,
+        t.account_id,
+        a.nickname AS account_nickname,
+        t.amount,
+        t.transactionType,
+        t.description,
+        t.tranDate,
+        t.tranTime,
+        t.category_id,
+        c.categoryName
+      FROM Transaction_Info t
+      LEFT JOIN Account a 
+        ON t.account_id = a.account_id AND t.user_id = a.user_id
+      LEFT JOIN Transaction_Category c 
+        ON t.category_id = c.category_id
+      WHERE t.transaction_id = ? AND t.user_id = ? AND t.isDeleted = 'N'
+    `;
+
+    const row = await new Promise((resolve, reject) => {
+      sqliteDb.get(query, [transaction_id, user_id], (err, result) => {
+        if (err) reject(err);
+        else resolve(result);
+      });
+    });
+
+    if (!row) {
+      return res.status(404).json({ error: "Transaction not found." });
+    }
+
+    res.status(200).json(row);
+  } catch (err) {
+    console.error("Error fetching transaction:", err.message);
+    res.status(500).json({ error: "Failed to fetch transaction." });
   }
 };
 
@@ -177,6 +237,162 @@ exports.getTransactionsByCategory = async (req, res) => {
   } catch (err) {
     console.error("Fetch error:", err.message);
     res.status(500).json({ error: "Failed to fetch transactions by category." });
+  }
+};
+
+exports.getTransactionsByType = async (req, res) => {
+  const { user_id, transactionType } = req.params;
+
+  if (!user_id || !transactionType) {
+    return res.status(400).json({ error: "User ID and transaction type are required." });
+  }
+
+  const validTypes = ["Income", "Expense", "Transfer"];
+  if (!validTypes.includes(transactionType)) {
+    return res
+      .status(400)
+      .json({ error: `Invalid transaction type. Allowed: ${validTypes.join(", ")}` });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        t.transaction_id,
+        t.user_id,
+        t.account_id,
+        a.nickname AS account_nickname,
+        t.amount,
+        t.transactionType,
+        t.description,
+        t.tranDate,
+        t.tranTime,
+        c.categoryName
+      FROM Transaction_Info t
+      JOIN Account a 
+        ON t.account_id = a.account_id 
+        AND t.user_id = a.user_id
+      LEFT JOIN Transaction_Category c 
+        ON t.category_id = c.category_id
+      WHERE t.user_id = ?
+        AND t.transactionType = ?
+        AND t.isDeleted = 'N'
+      ORDER BY t.tranDate DESC, t.tranTime DESC
+    `;
+
+    const transactions = await new Promise((resolve, reject) => {
+      sqliteDb.all(query, [user_id, transactionType], (err, rows) =>
+        err ? reject(err) : resolve(rows)
+      );
+    });
+
+    if (!transactions.length) {
+      return res
+        .status(404)
+        .json({ message: `No ${transactionType} transactions found for user ${user_id}.` });
+    }
+
+    res.status(200).json(transactions);
+  } catch (err) {
+    console.error("Error fetching transactions by type:", err.message);
+    res.status(500).json({ error: "Failed to fetch transactions." });
+  }
+};
+
+exports.getTransactionsByDateRange = async (req, res) => {
+  const { user_id } = req.params;
+  const { start, end, type } = req.query;
+
+  if (!user_id || !start || !end) {
+    return res.status(400).json({
+      error: "User ID, start date, and end date are required.",
+    });
+  }
+
+  try {
+    let query = `
+      SELECT 
+        t.transaction_id,
+        t.user_id,
+        t.account_id,
+        a.nickname AS account_nickname,
+        t.amount,
+        t.transactionType,
+        t.description,
+        t.tranDate,
+        t.tranTime,
+        c.categoryName
+      FROM Transaction_Info t
+      JOIN Account a 
+        ON t.account_id = a.account_id AND t.user_id = a.user_id
+      LEFT JOIN Transaction_Category c 
+        ON t.category_id = c.category_id
+      WHERE t.isDeleted = 'N' 
+        AND t.user_id = ?
+        AND DATE(t.tranDate) BETWEEN DATE(?) AND DATE(?)
+    `;
+
+    const params = [user_id, start, end];
+
+    // Optional: filter by transaction type if provided
+    if (type && type !== "All") {
+      query += ` AND t.transactionType = ?`;
+      params.push(type);
+    }
+
+    query += ` ORDER BY t.tranDate DESC, t.tranTime DESC`;
+
+    const rows = await new Promise((resolve, reject) => {
+      sqliteDb.all(query, params, (err, rows) => (err ? reject(err) : resolve(rows)));
+    });
+
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error("❌ Error fetching transactions by date range:", err.message);
+    res.status(500).json({ error: "Failed to fetch transactions by date range." });
+  }
+};
+
+exports.getTransactionsByTypeAndDate = async (req, res) => {
+  const { user_id, type } = req.params;
+  const { start, end } = req.query;
+
+  if (!user_id || !type || !start || !end) {
+    return res.status(400).json({ error: "Missing required parameters." });
+  }
+
+  try {
+    const query = `
+      SELECT 
+        t.transaction_id,
+        t.user_id,
+        t.account_id,
+        a.nickname AS account_nickname,
+        t.amount,
+        t.transactionType,
+        t.description,
+        t.tranDate,
+        t.tranTime,
+        c.categoryName
+      FROM Transaction_Info t
+      LEFT JOIN Account a ON t.account_id = a.account_id AND t.user_id = a.user_id
+      LEFT JOIN Transaction_Category c ON t.category_id = c.category_id
+      WHERE t.isDeleted = 'N'
+        AND t.user_id = ?
+        AND t.transactionType = ?
+        AND t.tranDate BETWEEN ? AND ?
+      ORDER BY t.tranDate DESC, t.tranTime DESC
+    `;
+
+    const rows = await new Promise((resolve, reject) => {
+      sqliteDb.all(query, [user_id, type, start, end], (err, rows) =>
+        err ? reject(err) : resolve(rows)
+      );
+    });
+
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error("❌ Error fetching transactions by type + date:", err.message);
+    res.status(500).json({ error: "Failed to fetch transactions." });
   }
 };
 

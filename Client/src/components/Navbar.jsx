@@ -1,32 +1,70 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "../Styles/Navbar.css";
 
-function Navbar() {
+function Sidebar() {
+  const location = useLocation();
   const navigate = useNavigate();
 
-  // Retrieve user info from localStorage
-  const user = JSON.parse(localStorage.getItem("user"));
+  const mainLinks = [
+    { to: "/", label: "🏠 Dashboard" },
+    { to: "/accounts", label: "💳 Accounts" },
+    { to: "/transactions", label: "💸 Transactions" },
+    { to: "/budgets", label: "📊 Budgets" },
+    { to: "/goals", label: "🎯 Goals" },
+    { to: "/reports/preview", label: "📈 Reports" },
+    { to: "/notes", label: "📝 Notes" },
+  ];
 
-  // Handle logout logic
+  const bottomLinks = [
+    { to: "/users", label: "👤 User Settings" },
+  ];
+
   const handleLogout = () => {
-    localStorage.removeItem("user"); // clear user data
-    alert("You have been logged out.");
-    navigate("/login"); // redirect to login page
+    localStorage.removeItem("user");
+    alert("You’ve been logged out successfully.");
+    navigate("/login");
   };
 
   return (
-    <div className="navbar">
-      <h1>Dashboard</h1>
+    <div className="sidebar">
+      {/* === Top Section === */}
+      <div className="sidebar-top">
+        <h2 className="sidebar-title"><span>Melony</span></h2>
 
-      <div className="navbar-right">
+        <nav className="sidebar-nav">
+          {mainLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={location.pathname === link.to ? "active" : ""}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      {/* === Bottom Section === */}
+      <div className="sidebar-bottom">
+        <nav>
+          {bottomLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={location.pathname === link.to ? "active" : ""}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
         <button className="logout-btn" onClick={handleLogout}>
-          Logout
+          🚪 Logout
         </button>
       </div>
     </div>
   );
 }
 
-export default Navbar;
-
+export default Sidebar;

@@ -37,20 +37,35 @@ SELECT
     g.user_id,
     COUNT(*) AS total_goals,
     SUM(g.targetAmount) AS total_target_amount,
-    SUM(g.currentAmount) AS total_current_amount,
-    ROUND((SUM(g.currentAmount) / NULLIF(SUM(g.targetAmount), 0)) * 100, 2) AS overall_progress_percent,
-    SUM(CASE WHEN g.currentAmount >= g.targetAmount THEN 1 ELSE 0 END) AS completed_goals,
+    SUM(NVL(a.balance, 0)) AS total_current_amount,  -- ✅ live balance from linked account
+    ROUND(
+        (SUM(NVL(a.balance, 0)) / NULLIF(SUM(g.targetAmount), 0)) * 100,
+        2
+    ) AS overall_progress_percent,
+    SUM(CASE WHEN NVL(a.balance, 0) >= g.targetAmount THEN 1 ELSE 0 END) AS completed_goals,
     SUM(CASE WHEN g.isActive = 'Y' THEN 1 ELSE 0 END) AS active_goals,
     CASE 
-        WHEN ROUND((SUM(g.currentAmount) / NULLIF(SUM(g.targetAmount), 0)) * 100, 2) >= 100 THEN 'Achieved All'
-        WHEN ROUND((SUM(g.currentAmount) / NULLIF(SUM(g.targetAmount), 0)) * 100, 2) >= 75 THEN 'On Track'
-        WHEN ROUND((SUM(g.currentAmount) / NULLIF(SUM(g.targetAmount), 0)) * 100, 2) >= 40 THEN 'Moderate Progress'
+        WHEN ROUND(
+            (SUM(NVL(a.balance, 0)) / NULLIF(SUM(g.targetAmount), 0)) * 100,
+            2
+        ) >= 100 THEN 'Achieved All'
+        WHEN ROUND(
+            (SUM(NVL(a.balance, 0)) / NULLIF(SUM(g.targetAmount), 0)) * 100,
+            2
+        ) >= 75 THEN 'On Track'
+        WHEN ROUND(
+            (SUM(NVL(a.balance, 0)) / NULLIF(SUM(g.targetAmount), 0)) * 100,
+            2
+        ) >= 40 THEN 'Moderate Progress'
         ELSE 'Needs Attention'
     END AS goal_summary_status
 FROM Saving_Goal g
+LEFT JOIN Account a
+    ON g.account_id = a.account_id
 WHERE g.isActive = 'Y'
 GROUP BY g.user_id
 ORDER BY g.user_id;
+/
 
 select * from vw_overall_saving_progress;
 

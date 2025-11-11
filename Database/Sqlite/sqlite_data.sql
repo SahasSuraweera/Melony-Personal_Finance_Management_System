@@ -43,6 +43,9 @@ INSERT INTO Account_Type (acc_type_id, accTypeName, assetOrLiability) VALUES
 INSERT INTO Account_Type (acc_type_id, accTypeName, assetOrLiability) VALUES 
 (14, 'Other Liabilities', 'Liability');
 
+INSERT INTO Account_Type (acc_type_id, accTypeName, assetOrLiability) VALUES 
+(15, 'Saving Goal Account', 'Asset');
+
 -- TRANSACTION_CATEGORY table
 -- EXPENSE CATEGORIES (1–15)
 INSERT INTO Transaction_Category (category_id, categoryName) VALUES (1, 'Food and Groceries');

@@ -103,3 +103,42 @@ form select:focus {
 .cancel-btn:hover {
   background-color: #b02a37;
 }
+
+.hint-text {
+  font-size: 14px;
+  margin-top: 6px;
+  font-weight: 500;
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-left: 4px solid #1976d2;
+  background: #f1f8ff;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+/* Info (default blue) */
+.hint-text.info {
+  color: #1565c0;
+  border-left-color: #1565c0;
+}
+
+/* Valid (green) */
+.hint-text.valid {
+  color: #1b5e20;
+  border-left-color: #1b5e20;
+  background: #e8f5e9;
+}
+
+/* Warning (amber) */
+.hint-text.warning {
+  color: #f57f17;
+  border-left-color: #f57f17;
+  background: #fff8e1;
+}
+
+/* Error (red) */
+.hint-text.error {
+  color: #c62828;
+  border-left-color: #c62828;
+  background: #ffebee;
+}

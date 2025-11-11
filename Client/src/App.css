@@ -3,11 +3,12 @@ body, html, #root {
   margin: 0;
   height: 100%;
   font-family: Arial, sans-serif;
+  margin-left: 72px; /* to accommodate sidebar space */
 }
 
 .app-container {
   display: flex;
-  height: 100vh; /* full viewport height */
+  height: 100vh; 
 }
 
 .main-content {
@@ -17,8 +18,7 @@ body, html, #root {
 }
 
 .page-content {
-  padding: 20px;
   overflow-y: auto;
   flex: 1;
-  background-color: #f5f5f5;
+  background-color: #b7e4f0;
 }

@@ -143,18 +143,27 @@ BEGIN
         SELECT 
             sg.goalName AS goal_name,
             sg.targetAmount AS target_amount,
-            sg.currentAmount AS current_amount,
-            ROUND((sg.currentAmount / sg.targetAmount) * 100, 2) AS progress_percentage,
+            NVL(a.balance, 0) AS current_amount,  -- ✅ live balance from account
+            ROUND(
+                CASE 
+                    WHEN sg.targetAmount > 0 THEN (NVL(a.balance, 0) / sg.targetAmount) * 100
+                    ELSE 0
+                END,
+                2
+            ) AS progress_percentage,
             CASE 
-                WHEN sg.currentAmount >= sg.targetAmount THEN 'Completed'
-                WHEN sg.currentAmount >= sg.targetAmount * 0.8 THEN 'Near Goal'
+                WHEN NVL(a.balance, 0) >= sg.targetAmount THEN 'Completed'
+                WHEN NVL(a.balance, 0) >= sg.targetAmount * 0.8 THEN 'Near Goal'
                 ELSE 'In Progress'
             END AS status,
             sg.startDate AS start_date,
             sg.endDate AS end_date
         FROM Saving_Goal sg
+        JOIN Account a 
+            ON sg.account_id = a.account_id  -- ✅ join to get balance
         WHERE sg.user_id = p_user_id
-          AND sg.isActive = 'Y';
+          AND sg.isActive = 'Y'
+          AND a.isActive = 'Y';  -- optional safety check
 
     RETURN rc;
 END;

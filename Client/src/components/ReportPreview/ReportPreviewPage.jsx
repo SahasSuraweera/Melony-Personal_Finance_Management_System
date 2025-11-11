@@ -42,6 +42,7 @@ const ReportPreviewPage = () => {
       setLoading(false);
     }
   };
+  
 
   const { needYear, needMonth } = reportConfig[type];
 
@@ -60,7 +61,7 @@ const ReportPreviewPage = () => {
           }}
           className="filter-select"
         >
-          <option value="monthly-expenditure">Monthly Expenditure</option>
+          <option value="monthly-expenditure">Month-Wise Expenditure Analysis</option>
           <option value="budget-adherence">Budget Adherence</option>
           <option value="saving-progress">Saving Goal Progress</option>
           <option value="category-expense">Category-wise Expense</option>
@@ -85,6 +86,7 @@ const ReportPreviewPage = () => {
             className="filter-input"
             >
             <option value="">Select Month</option>
+            <option value="11">November</option>
             <option value="1">January</option>
             <option value="2">February</option>
             <option value="3">March</option>
