@@ -37,7 +37,6 @@ function GetUserAccount() {
     }
   };
 
-  // ✅ Fetch user's active saving goals
   const fetchSavingGoals = async (user_id) => {
     try {
       const res = await axios.get(
@@ -52,7 +51,6 @@ function GetUserAccount() {
     }
   };
 
-  // ✅ Check if account is linked to an active saving goal
   const isGoalLinked = (account_id) =>
     savingGoals.some(
       (goal) => Number(goal.ACCOUNT_ID || goal.account_id) === Number(account_id)
@@ -62,10 +60,9 @@ function GetUserAccount() {
   const handleTransfer = () => navigate("/create/transaction/transfer");
   const handleUpdate = (account_id) => navigate(`/update/account/${account_id}`);
 
-  // ✅ Handle deactivate account
   const handleDeactivate = async (account_id) => {
     try {
-      // 🚫 Block if linked to goal
+     
       if (isGoalLinked(account_id)) {
         alert(
           "⚠️ This account is linked to an active saving goal. Please delete the goal first before deactivating this account."
@@ -107,7 +104,6 @@ function GetUserAccount() {
   if (loading) return <p>Loading accounts...</p>;
   if (error) return <p className="error">{error}</p>;
 
-  // 🟢 Categorize accounts
   const assets = accounts.filter((acc) => acc.assetOrLiability === "Asset");
   const liabilities = accounts.filter(
     (acc) => acc.assetOrLiability === "Liability"
@@ -127,7 +123,6 @@ function GetUserAccount() {
         </div>
       </div>
 
-      {/* 🟢 ASSETS SECTION */}
       <div className="account-section">
         <h3 className="section-title">Assets 💰</h3>
         {assets.length === 0 ? (
@@ -147,7 +142,6 @@ function GetUserAccount() {
                     {acc.accTypeName} ({acc.assetOrLiability})
                   </div>
 
-                  {/* 🏆 Move badge to second row */}
                   {linked && (
                     <div className="goal-badge-row">
                       <span className="goal-badge" title="Linked to a Saving Goal">
@@ -194,7 +188,6 @@ function GetUserAccount() {
         )}
       </div>
 
-      {/* 🔴 LIABILITIES SECTION */}
       <div className="account-section">
         <h3 className="section-title">Liabilities 💸</h3>
         {liabilities.length === 0 ? (
@@ -214,7 +207,6 @@ function GetUserAccount() {
                     {acc.accTypeName} ({acc.assetOrLiability})
                   </div>
 
-                  {/* 🏆 Move badge to second row */}
                   {linked && (
                     <div className="goal-badge-row">
                       <span className="goal-badge" title="Linked to a Saving Goal">

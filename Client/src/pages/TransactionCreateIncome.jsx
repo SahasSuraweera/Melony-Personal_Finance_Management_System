@@ -17,7 +17,6 @@ export default function TransactionCreateIncome() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Load user info, accounts, and income categories
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
@@ -29,7 +28,6 @@ export default function TransactionCreateIncome() {
     }
   }, []);
 
-  // ✅ Fetch user's accounts
   const fetchAccounts = async (user_id) => {
     try {
       const res = await axios.get(`http://localhost:3000/api/accounts/user/${user_id}`);
@@ -40,7 +38,6 @@ export default function TransactionCreateIncome() {
     }
   };
 
-  // ✅ Fetch only income-related categories (ID range 16–25)
   const fetchCategories = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/transactionCategories");
@@ -54,18 +51,16 @@ export default function TransactionCreateIncome() {
     }
   };
 
-  // ✅ Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Submit income transaction and update account
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.account_id) {
-      alert("⚠️ Please select an account before saving.");
+      alert(" Please select an account before saving.");
       return;
     }
 
@@ -73,7 +68,7 @@ export default function TransactionCreateIncome() {
     setError("");
 
     try {
-      // Step 1️⃣: Create the income transaction
+      
       const transactionPayload = {
         ...formData,
         transactionType: "Income",
@@ -81,14 +76,12 @@ export default function TransactionCreateIncome() {
 
       await axios.post("http://localhost:3000/api/transactions", transactionPayload);
 
-      // Step 2️⃣: Find the selected account
       const selectedAccount = accounts.find(
         (a) => a.account_id === parseInt(formData.account_id)
       );
 
       if (!selectedAccount) throw new Error("Account not found.");
 
-      // Step 3️⃣: Prepare updated account details
       const updatedAccount = {
         user_id: selectedAccount.user_id,
         acc_type_id: selectedAccount.acc_type_id,
@@ -98,16 +91,15 @@ export default function TransactionCreateIncome() {
         balance: Number(selectedAccount.balance) + Number(formData.amount),
       };
 
-      // Step 4️⃣: Update account (increase balance)
       await axios.put(
         `http://localhost:3000/api/accounts/${selectedAccount.account_id}`,
         updatedAccount
       );
 
-      alert("✅ Income transaction created and account balance updated!");
+      alert(" Income transaction created and account balance updated!");
       window.history.back();
     } catch (err) {
-      console.error("❌ Error saving transaction:", err);
+      console.error(" Error saving transaction:", err);
       setError("Failed to save income transaction. Try again later.");
     } finally {
       setLoading(false);
@@ -121,7 +113,7 @@ export default function TransactionCreateIncome() {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit} className="dialog-form">
-          {/* Account Dropdown */}
+         
           <div className="form-group">
             <label>Account</label>
             <select
@@ -139,7 +131,7 @@ export default function TransactionCreateIncome() {
             </select>
           </div>
 
-          {/* Category Dropdown */}
+         
           <div className="form-group">
             <label>Category</label>
             <select
@@ -157,7 +149,7 @@ export default function TransactionCreateIncome() {
             </select>
           </div>
 
-          {/* Amount */}
+          
           <div className="form-group">
             <label>Amount (Rs.)</label>
             <input
@@ -170,7 +162,6 @@ export default function TransactionCreateIncome() {
             />
           </div>
 
-          {/* Description */}
           <div className="form-group">
             <label>Description</label>
             <input
@@ -182,7 +173,6 @@ export default function TransactionCreateIncome() {
             />
           </div>
 
-          {/* Date and Time */}
           <div className="form-inline">
             <div className="form-group">
               <label>Date</label>
@@ -204,7 +194,6 @@ export default function TransactionCreateIncome() {
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="dialog-actions">
             <button type="submit" className="save-btn" disabled={loading}>
               💾 {loading ? "Saving..." : "Save"}

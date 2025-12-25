@@ -21,9 +21,8 @@ function CreateAccount() {
   const [submitting, setSubmitting] = useState(false);
 
   const [balanceHint, setBalanceHint] = useState("");
-  const [hintType, setHintType] = useState("info"); // info | valid | warning | error
+  const [hintType, setHintType] = useState("info"); 
 
-  // ✅ Fetch account types
   useEffect(() => {
     axios
       .get("http://localhost:3000/api/accountTypes")
@@ -32,7 +31,6 @@ function CreateAccount() {
       .finally(() => setLoading(false));
   }, []);
 
-  // ✅ Load logged-in user
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user && user.user_id) {
@@ -43,7 +41,6 @@ function CreateAccount() {
     }
   }, [navigate]);
 
-  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -78,14 +75,12 @@ function CreateAccount() {
     }
   };
 
-  // ✅ Toggle between asset/liability view
   const handleCategoryToggle = (category) => {
     setSelectedCategory(category);
     setFormData((prev) => ({ ...prev, acc_type_id: "", balance: "" }));
     setBalanceHint("");
   };
 
-  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -137,7 +132,6 @@ function CreateAccount() {
     <div className="create-account-container">
       <h2>Create New Account</h2>
 
-      {/* Toggle Buttons */}
       <div className="toggle-container">
         <button
           type="button"
@@ -155,7 +149,6 @@ function CreateAccount() {
         </button>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit}>
         <label>Account Type:</label>
         <select

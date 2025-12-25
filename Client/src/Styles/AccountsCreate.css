@@ -13,7 +13,7 @@
   color: #1e293b;
 }
 
-/* Toggle Buttons */
+
 .toggle-container {
   display: flex;
   justify-content: center;
@@ -41,7 +41,7 @@
   color: white;
 }
 
-/* Form Fields */
+
 form {
   display: flex;
   flex-direction: column;
@@ -67,7 +67,7 @@ form select:focus {
   border-color: #007bff;
 }
 
-/* Buttons */
+
 .form-actions {
   display: flex;
   justify-content: space-between;
@@ -116,27 +116,27 @@ form select:focus {
   transition: all 0.3s ease;
 }
 
-/* Info (default blue) */
+
 .hint-text.info {
   color: #1565c0;
   border-left-color: #1565c0;
 }
 
-/* Valid (green) */
+
 .hint-text.valid {
   color: #1b5e20;
   border-left-color: #1b5e20;
   background: #e8f5e9;
 }
 
-/* Warning (amber) */
+
 .hint-text.warning {
   color: #f57f17;
   border-left-color: #f57f17;
   background: #fff8e1;
 }
 
-/* Error (red) */
+
 .hint-text.error {
   color: #c62828;
   border-left-color: #c62828;

@@ -16,7 +16,6 @@ const Notes = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Get logged-in user ID from localStorage
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
     if (storedUser?.user_id) {
@@ -24,7 +23,6 @@ const Notes = () => {
     }
   }, []);
 
-  // ✅ Fetch all notes
   const fetchNotes = async () => {
     if (!form.user_id) return;
     setLoading(true);
@@ -42,18 +40,16 @@ const Notes = () => {
     if (form.user_id) fetchNotes();
   }, [form.user_id]);
 
-  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Handle create / update
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!form.title.trim() || !form.description.trim()) {
-      alert("⚠️ Please fill in both title and description!");
+      alert(" Please fill in both title and description!");
       return;
     }
 
@@ -67,21 +63,20 @@ const Notes = () => {
     try {
       if (isEditing) {
         await axios.put(`${API_URL}/${form.note_id}`, noteData);
-        alert("✅ Note updated successfully!");
+        alert(" Note updated successfully!");
       } else {
         await axios.post(API_URL, noteData);
-        alert("✅ Note added successfully!");
+        alert(" Note added successfully!");
       }
 
       resetForm();
       fetchNotes();
     } catch (err) {
       console.error("Save note error:", err);
-      alert("❌ Failed to save note. Please try again.");
+      alert(" Failed to save note. Please try again.");
     }
   };
 
-  // ✅ Handle edit
   const handleEdit = (note) => {
     setForm({
       note_id: note.note_id,
@@ -94,7 +89,6 @@ const Notes = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ✅ Handle delete
   const handleDelete = async (note_id) => {
     if (!window.confirm("🗑️ Are you sure you want to delete this note?")) return;
 
@@ -102,15 +96,14 @@ const Notes = () => {
       await axios.delete(`${API_URL}/${note_id}`, {
         data: { user_id: form.user_id },
       });
-      alert("✅ Note deleted successfully!");
+      alert(" Note deleted successfully!");
       fetchNotes();
     } catch (err) {
       console.error("Delete error:", err);
-      alert("❌ Failed to delete note.");
+      alert(" Failed to delete note.");
     }
   };
 
-  // ✅ Reset form
   const resetForm = () => {
     setForm({
       note_id: null,
@@ -126,7 +119,6 @@ const Notes = () => {
     <div className="note-container">
       <h2 className="note-header">📝 Notes Management</h2>
 
-      {/* === Note Form === */}
       <form className="note-form" onSubmit={handleSubmit}>
         <label htmlFor="title">Title</label>
         <input
@@ -170,7 +162,6 @@ const Notes = () => {
         </div>
       </form>
 
-      {/* === Notes List === */}
       <div className="notes-list">
         {loading ? (
           <p className="loading-text">Loading notes...</p>

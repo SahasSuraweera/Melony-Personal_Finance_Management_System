@@ -10,8 +10,8 @@ exports.createTransaction = async (req, res) => {
     amount,
     transactionType,
     description,
-    tranDate, // optional (from frontend)
-    tranTime, // optional (from frontend)
+    tranDate,
+    tranTime, 
   } = req.body;
 
   if (!user_id || !account_id || !amount || !transactionType) {
@@ -20,12 +20,16 @@ exports.createTransaction = async (req, res) => {
     });
   }
 
-  // Default to current date and time if not provided
-  const currentDate = tranDate || new Date().toISOString().split("T")[0]; // yyyy-mm-dd
-  const currentTime = tranTime || new Date().toISOString(); // full timestamp
+  const currentDate = tranDate || new Date().toISOString().split("T")[0]; // e.g. "2025-11-11"
+  const currentTime =
+    tranTime ||
+    new Date().toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }); // e.g. "14:04"
 
   try {
-    // 🔹 Insert into SQLite
+    // ✅ STEP 1: Insert into SQLite
     const insertSql = `
       INSERT INTO Transaction_Info (
         user_id, account_id, category_id, amount, transactionType, description, tranDate, tranTime
@@ -53,18 +57,24 @@ exports.createTransaction = async (req, res) => {
       );
     });
 
-    console.log(
-      `Transaction created locally (SQLite ID: ${sqliteResult}) for user ${user_id}`
-    );
+    console.log(`💾 Transaction created locally (SQLite ID: ${sqliteResult}) for user ${user_id}`);
 
+  
     try {
       const conn = await getOracleConnection();
+
+      const dateValue = tranDate ? new Date(tranDate) : new Date();
+
       const oracleSql = `
         INSERT INTO Transaction_Info (
-          transaction_id, user_id, account_id, category_id, amount, transactionType, description, tranDate, tranTime
+          transaction_id, user_id, account_id, category_id, amount, transactionType,
+          description, tranDate, tranTime
         )
         VALUES (
-          :transaction_id, :user_id, :account_id, :category_id, :amount, :transactionType, :description, TO_DATE(:tranDate, 'YYYY-MM-DD'), TO_TIMESTAMP(:tranTime, 'YYYY-MM-DD"T"HH24:MI:SS.FF')
+          :transaction_id, :user_id, :account_id, :category_id, :amount, :transactionType,
+          :description,
+          :tranDate,       -- JS Date → Oracle DATE
+          SYSTIMESTAMP     -- Oracle system timestamp
         )
       `;
 
@@ -76,18 +86,17 @@ exports.createTransaction = async (req, res) => {
         amount,
         transactionType,
         description,
-        tranDate: currentDate,
-        tranTime: currentTime,
+        tranDate: dateValue, // JS Date object bound to Oracle DATE
       });
 
       await conn.commit();
       await conn.close();
 
-      console.log(`Transaction ${sqliteResult} synced to Oracle.`);
+      console.log(`✅ Transaction ${sqliteResult} synced to Oracle successfully (system timestamp used).`);
     } catch (oracleErr) {
-      console.warn(
-        `Oracle insert failed for Transaction ${sqliteResult}: ${oracleErr.message}`
-      );
+      console.warn(`⚠️ Oracle insert failed for Transaction ${sqliteResult}: ${oracleErr.message}`);
+
+      // Save unsynced transaction for retry later
       savePendingTransactionAction("insert_transaction", sqliteResult, user_id, {
         account_id,
         category_id,
@@ -99,6 +108,7 @@ exports.createTransaction = async (req, res) => {
       });
     }
 
+    // ✅ STEP 3: Final Response
     res.status(201).json({
       message: "Transaction created successfully.",
       transaction_id: sqliteResult,
@@ -106,7 +116,7 @@ exports.createTransaction = async (req, res) => {
       tranTime: currentTime,
     });
   } catch (err) {
-    console.error("SQLite insert error:", err.message);
+    console.error("❌ SQLite insert error:", err.message);
     res.status(500).json({ error: "Failed to create transaction." });
   }
 };

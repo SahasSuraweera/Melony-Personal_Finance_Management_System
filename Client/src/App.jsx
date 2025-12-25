@@ -28,11 +28,11 @@ import "./Styles/Navbar.css";
 import "./Styles/Sidebar.css";
 import "./Styles/Dashboard.css";
 
-// ✅ Wrapper to detect current path and hide sidebar/navbar for certain pages
+
 function LayoutWrapper() {
   const location = useLocation();
 
-  // Paths where sidebar and navbar should be hidden
+  
   const hideLayout = ["/login", "/register"].includes(location.pathname);
 
   return (

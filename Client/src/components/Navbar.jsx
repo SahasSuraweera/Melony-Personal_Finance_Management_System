@@ -8,7 +8,7 @@ function Sidebar() {
 
   const mainLinks = [
     { to: "/", label: "🏠 Dashboard" },
-    { to: "/accounts", label: "💳 Accounts" },
+    { to: "/accounts", label: "💳 My Wallets" },
     { to: "/transactions", label: "💸 Transactions" },
     { to: "/budgets", label: "📊 Budgets" },
     { to: "/goals", label: "🎯 Goals" },
@@ -21,10 +21,15 @@ function Sidebar() {
   ];
 
   const handleLogout = () => {
+  const confirmLogout = window.confirm("Are you sure you want to log out?");
+  
+  if (confirmLogout) {
     localStorage.removeItem("user");
-    alert("You’ve been logged out successfully.");
     navigate("/login");
-  };
+  } else {
+    alert("Logout cancelled.");
+  }
+};
 
   return (
     <div className="sidebar">

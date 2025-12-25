@@ -1,11 +1,17 @@
+/* === Full Page Fix === */
+body.login-active {
+  margin-left: -100 !important; /* Override sidebar margin */
+}
+
 /* === Overall Layout === */
 .login-page {
   display: flex;
   height: 100vh;
   font-family: "Poppins", sans-serif;
+  margin-left: 0 !important;
 }
 
-/* === Left Side (Brand & Welcome Section) === */
+/* === Left Side === */
 .login-left {
   flex: 1;
   background: linear-gradient(135deg, #3f6a97, #00b4d8);
@@ -16,7 +22,6 @@
   align-items: flex-start;
   padding: 80px;
   box-sizing: border-box;
- 
 }
 
 .app-title {
@@ -33,7 +38,7 @@
   opacity: 0.9;
 }
 
-/* === Right Side (Login Box Section) === */
+/* === Right Side === */
 .login-right {
   flex: 1;
   display: flex;
@@ -134,7 +139,7 @@
   text-decoration: underline;
 }
 
-/* === Responsive Design === */
+/* === Responsive === */
 @media (max-width: 900px) {
   .login-page {
     flex-direction: column;

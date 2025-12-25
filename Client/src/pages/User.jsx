@@ -6,19 +6,16 @@ function UserAccount() {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
 
-  // Load current logged-in user
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user"));
     if (savedUser) setUser(savedUser);
   }, []);
 
-  // Handle input changes for editing
   const handleEditChange = (e) => {
     const { name, value } = e.target;
     setUser((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Handle update (PUT /update/:user_id)
   const handleUpdate = async () => {
     try {
       await axios.put(`http://localhost:3000/api/users/${user.user_id}`, user);
@@ -30,7 +27,6 @@ function UserAccount() {
     }
   };
 
-  // Handle delete (soft delete)
   const handleDelete = async () => {
   if (!window.confirm("Are you sure you want to delete your account?")) return;
 

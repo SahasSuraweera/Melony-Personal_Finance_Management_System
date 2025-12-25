@@ -18,7 +18,6 @@ export default function CreateSavingGoal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Load user and fetch their accounts + existing goals
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
@@ -30,7 +29,6 @@ export default function CreateSavingGoal() {
     }
   }, []);
 
-  // ✅ Fetch user's Asset accounts
   const fetchAccounts = async (user_id) => {
     try {
       const res = await axios.get(`http://localhost:3000/api/accounts/user/${user_id}`);
@@ -41,12 +39,11 @@ export default function CreateSavingGoal() {
       );
       setAccounts(assetAccounts);
     } catch (err) {
-      console.error("❌ Failed to load accounts:", err);
+      console.error(" Failed to load accounts:", err);
       setError("Failed to fetch user accounts.");
     }
   };
 
-  // ✅ Fetch user's existing saving goals
   const fetchExistingGoals = async (user_id) => {
     try {
       const res = await axios.get(
@@ -54,11 +51,10 @@ export default function CreateSavingGoal() {
       );
       setExistingGoals(res.data);
     } catch (err) {
-      console.error("❌ Failed to load existing goals:", err);
+      console.error(" Failed to load existing goals:", err);
     }
   };
 
-  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -74,7 +70,6 @@ export default function CreateSavingGoal() {
     }
   };
 
-  // ✅ Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -96,7 +91,6 @@ export default function CreateSavingGoal() {
       return;
     }
 
-    // 🚫 Check if this account already has a saving goal
     const alreadyLinked = existingGoals.some(
       (goal) =>
         Number(goal.ACCOUNT_ID || goal.account_id) === Number(account_id) &&
@@ -148,7 +142,7 @@ export default function CreateSavingGoal() {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit} className="dialog-form">
-          {/* Account Selection */}
+          
           <div className="form-group">
             <label>Select Asset Account</label>
             <select
@@ -179,7 +173,6 @@ export default function CreateSavingGoal() {
             </select>
           </div>
 
-          {/* Goal Name */}
           <div className="form-group">
             <label>Goal Name</label>
             <input
@@ -192,7 +185,6 @@ export default function CreateSavingGoal() {
             />
           </div>
 
-          {/* Target Amount */}
           <div className="form-group">
             <label>Target Amount (Rs.)</label>
             <input
@@ -205,7 +197,6 @@ export default function CreateSavingGoal() {
             />
           </div>
 
-          {/* Initial Amount */}
           <div className="form-group">
             <label>Initial Amount (Rs.)</label>
             <input
@@ -218,7 +209,6 @@ export default function CreateSavingGoal() {
             />
           </div>
 
-          {/* Dates */}
           <div className="form-inline">
             <div className="form-group">
               <label>Start Date</label>
@@ -243,7 +233,6 @@ export default function CreateSavingGoal() {
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="dialog-actions">
             <button type="submit" className="save-btn green" disabled={loading}>
               💾 {loading ? "Saving..." : "Save Goal"}

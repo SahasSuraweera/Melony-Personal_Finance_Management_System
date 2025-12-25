@@ -5,32 +5,36 @@ import "../Styles/TransactionCreate.css";
 export default function TransactionCreateExpense() {
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [savingGoals, setSavingGoals] = useState([]); // 🧩 For active goals
+  const [savingGoals, setSavingGoals] = useState([]);
   const [formData, setFormData] = useState({
     user_id: "",
     account_id: "",
     category_id: "",
     amount: "",
     description: "",
-    tranDate: new Date().toISOString().split("T")[0],
-    tranTime: new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
+    tranDate: new Date().toISOString().split("T")[0], 
+    tranTime: new Date().toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }), 
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState(null);
 
-  // ✅ Load user and fetch data
+  
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
+    if (user && user.user_id) {
       setFormData((prev) => ({ ...prev, user_id: user.user_id }));
       fetchAccounts(user.user_id);
       fetchCategories();
       fetchSavingGoals(user.user_id);
-    } else setError("User not logged in.");
+    } else {
+      setError(" User not logged in. Please log in to continue.");
+    }
   }, []);
 
-  // ✅ Fetch user accounts
   const fetchAccounts = async (user_id) => {
     try {
       const res = await axios.get(`http://localhost:3000/api/accounts/user/${user_id}`);
@@ -40,18 +44,18 @@ export default function TransactionCreateExpense() {
     }
   };
 
-  // ✅ Fetch transaction categories
   const fetchCategories = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/transactionCategories");
-      const cats = res.data.filter((c) => Number(c.category_id) >= 1 && Number(c.category_id) <= 15);
+      const cats = res.data.filter(
+        (c) => Number(c.category_id) >= 1 && Number(c.category_id) <= 15
+      );
       setCategories(cats);
     } catch {
       setError("Failed to load categories.");
     }
   };
 
-  // ✅ Fetch user's active saving goals
   const fetchSavingGoals = async (user_id) => {
     try {
       const res = await axios.get(`http://localhost:3000/api/savingsGoals/user/${user_id}`);
@@ -60,11 +64,10 @@ export default function TransactionCreateExpense() {
       );
       setSavingGoals(activeGoals);
     } catch (err) {
-      console.error("❌ Failed to fetch saving goals:", err);
+      console.error(" Failed to fetch saving goals:", err);
     }
   };
 
-  // ✅ Detect liability or credit accounts
   const isLiabilityAccount = (account) => {
     const typeName = (account.acc_type_name || "").toLowerCase();
     const nickname = (account.nickname || "").toLowerCase();
@@ -79,14 +82,12 @@ export default function TransactionCreateExpense() {
     );
   };
 
-  // ✅ Check if account is linked to an active saving goal
   const isGoalLinked = (account_id) => {
     return savingGoals.some(
       (goal) => Number(goal.ACCOUNT_ID || goal.account_id) === Number(account_id)
     );
   };
 
-  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -97,7 +98,7 @@ export default function TransactionCreateExpense() {
     }
   };
 
-  // ✅ Handle submit
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -106,9 +107,8 @@ export default function TransactionCreateExpense() {
     try {
       if (!selectedAccount) throw new Error("No account selected.");
 
-      // 🚫 Prevent expense from goal-linked account
       if (isGoalLinked(selectedAccount.account_id)) {
-        alert("⚠️ This account is linked to an active saving goal. Expenses are not allowed.");
+        alert(" This account is linked to an active saving goal. Expenses are not allowed.");
         setLoading(false);
         return;
       }
@@ -118,16 +118,28 @@ export default function TransactionCreateExpense() {
       const amount = Number(formData.amount);
 
       if (!isLiability && (balance <= 0 || balance < amount)) {
-        alert("❌ Insufficient balance. Please enter a valid amount.");
+        alert(" Insufficient balance. Please enter a valid amount.");
         setLoading(false);
         return;
       }
 
-      // Step 1️⃣ Create expense transaction
-      const payload = { ...formData, transactionType: "Expense" };
+     
+      const combinedDateTime = new Date(`${formData.tranDate}T${formData.tranTime}:00`);
+      if (isNaN(combinedDateTime.getTime())) {
+        throw new Error("Invalid date or time format.");
+      }
+
+      const payload = {
+        ...formData,
+        transactionType: "Expense",
+        tranDate: combinedDateTime.toISOString(), 
+      };
+
+      console.log("🛰️ Sending payload:", payload);
+
       await axios.post("http://localhost:3000/api/transactions", payload);
 
-      // Step 2️⃣ Update account balance
+      
       const updatedBalance = isLiability ? balance - amount : Math.max(balance - amount, 0);
       const updatedAccount = { ...selectedAccount, balance: updatedBalance };
 
@@ -136,11 +148,11 @@ export default function TransactionCreateExpense() {
         updatedAccount
       );
 
-      alert("✅ Expense recorded successfully!");
+      alert("Expense recorded successfully!");
       window.history.back();
     } catch (err) {
-      console.error("❌ Error saving expense:", err);
-      setError("Failed to save expense transaction.");
+      console.error(" Error saving expense:", err);
+      setError("Failed to save expense transaction. " + (err.message || ""));
     } finally {
       setLoading(false);
     }
@@ -153,7 +165,6 @@ export default function TransactionCreateExpense() {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit} className="dialog-form">
-          {/* Account Selection */}
           <div className="form-group">
             <label>Account</label>
             <select
@@ -183,14 +194,12 @@ export default function TransactionCreateExpense() {
             </select>
           </div>
 
-          {/* Balance Info */}
           {selectedAccount && (
             <p className="balance-info">
               💰 Available Balance: <strong>Rs. {selectedAccount.balance.toFixed(2)}</strong>
             </p>
           )}
 
-          {/* Category */}
           <div className="form-group">
             <label>Category</label>
             <select
@@ -208,7 +217,6 @@ export default function TransactionCreateExpense() {
             </select>
           </div>
 
-          {/* Amount */}
           <div className="form-group">
             <label>Amount (Rs.)</label>
             <input
@@ -218,10 +226,11 @@ export default function TransactionCreateExpense() {
               onChange={handleChange}
               placeholder="Enter amount"
               required
+              min="0.01"
+              step="0.01"
             />
           </div>
 
-          {/* Description */}
           <div className="form-group">
             <label>Description</label>
             <input
@@ -233,7 +242,6 @@ export default function TransactionCreateExpense() {
             />
           </div>
 
-          {/* Date & Time */}
           <div className="form-inline">
             <div className="form-group">
               <label>Date</label>
@@ -242,6 +250,7 @@ export default function TransactionCreateExpense() {
                 name="tranDate"
                 value={formData.tranDate}
                 onChange={handleChange}
+                required
               />
             </div>
             <div className="form-group">
@@ -251,16 +260,20 @@ export default function TransactionCreateExpense() {
                 name="tranTime"
                 value={formData.tranTime}
                 onChange={handleChange}
+                required
               />
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="dialog-actions">
             <button type="submit" className="save-btn red" disabled={loading}>
               💾 {loading ? "Saving..." : "Save"}
             </button>
-            <button type="button" className="cancel-btn" onClick={() => window.history.back()}>
+            <button
+              type="button"
+              className="cancel-btn"
+              onClick={() => window.history.back()}
+            >
               ❌ Cancel
             </button>
           </div>

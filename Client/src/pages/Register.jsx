@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { registerUser } from "../api/userService";
 import "../Styles/Register.css";
 
@@ -8,8 +9,9 @@ function Register() {
     lastName: "",
     email: "",
     password: "",
+    confirmPassword: "",
     occupation: "",
-    houseNo: "",   // changed from houseNO
+    houseNo: "",
     streetName: "",
     city: "",
     phone: "",
@@ -17,6 +19,7 @@ function Register() {
 
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +28,7 @@ function Register() {
 
   const validate = () => {
     const newErrors = {};
+
     Object.entries(formData).forEach(([key, value]) => {
       if (!value.trim()) newErrors[key] = "This field is required";
     });
@@ -48,6 +52,10 @@ function Register() {
       newErrors.phone = "Phone number must be 10 digits";
     }
 
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -59,21 +67,22 @@ function Register() {
     setLoading(true);
     try {
       const response = await registerUser(formData);
-      alert(response.message);  // controller will return { message: "..." }
+      alert(response.message || "Registration successful!");
       setFormData({
         firstName: "",
         lastName: "",
         email: "",
         password: "",
+        confirmPassword: "",
         occupation: "",
         houseNo: "",
         streetName: "",
         city: "",
         phone: "",
       });
+      navigate("/login");
     } catch (err) {
-      // axios error structure
-      if (err.response && err.response.data && err.response.data.error) {
+      if (err.response?.data?.error) {
         alert(err.response.data.error);
       } else {
         alert(err.message || "Server error, please try again later");
@@ -83,36 +92,101 @@ function Register() {
     }
   };
 
+  const handleCancel = () => {
+    navigate("/login");
+  };
+
   return (
     <div className="register-container">
       <div className="register-box">
-        <h2>Register</h2>
+        <h2>Join With Us!</h2>
+
         <form onSubmit={handleSubmit}>
-          {[
-            { label: "First Name", name: "firstName" },
-            { label: "Last Name", name: "lastName" },
-            { label: "Email", name: "email", type: "email" },
-            { label: "Password", name: "password", type: "password" },
-            { label: "Occupation", name: "occupation" },
-            { label: "House No.", name: "houseNo" },
-            { label: "Street Name", name: "streetName" },
-            { label: "City", name: "city" },
-            { label: "Phone", name: "phone" },
-          ].map(({ label, name, type }) => (
-            <div className="input-group" key={name}>
-              <label>{label}</label>
+          
+          <div className="section">
+            <h3>👤 Personal Information</h3>
+            <div className="input-grid">
+              {[
+                { label: "First Name", name: "firstName" },
+                { label: "Last Name", name: "lastName" },
+                { label: "Occupation", name: "occupation" },
+                { label: "House No.", name: "houseNo" },
+                { label: "Street Name", name: "streetName" },
+                { label: "City", name: "city" },
+                { label: "Phone", name: "phone" },
+              ].map(({ label, name, type }) => (
+                <div className="input-group" key={name}>
+                  <label>{label}</label>
+                  <input
+                    type={type || "text"}
+                    name={name}
+                    value={formData[name]}
+                    onChange={handleChange}
+                  />
+                  {errors[name] && <span className="error">{errors[name]}</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          
+          <div className="section credentials-section">
+            <h3>🔐 Account Credentials</h3>
+
+            
+            <div className="input-group">
+              <label>Email</label>
               <input
-                type={type || "text"}
-                name={name}
-                value={formData[name]}
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
               />
-              {errors[name] && <span className="error">{errors[name]}</span>}
+              {errors.email && <span className="error">{errors.email}</span>}
             </div>
-          ))}
-          <button type="submit" className="register-button" disabled={loading}>
-            {loading ? "Registering..." : "Register"}
-          </button>
+
+            
+            <div className="input-row">
+              <div className="input-group">
+                <label>Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                {errors.password && <span className="error">{errors.password}</span>}
+              </div>
+
+              <div className="input-group">
+                <label>Confirm Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+                {errors.confirmPassword && (
+                  <span className="error">{errors.confirmPassword}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          
+          <div className="button-group">
+            <button type="submit" className="register-button" disabled={loading}>
+              {loading ? "Registering..." : "Register"}
+            </button>
+            <button
+              type="button"
+              className="cancel-button"
+              onClick={handleCancel}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
     </div>

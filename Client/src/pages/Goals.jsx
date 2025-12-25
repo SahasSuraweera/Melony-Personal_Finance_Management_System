@@ -19,7 +19,6 @@ function Goals() {
   const user = JSON.parse(localStorage.getItem("user"));
   const user_id = user ? user.user_id : null;
 
-  // ✅ Fetch goals & accounts
   useEffect(() => {
     if (user_id) {
       Promise.all([fetchGoals(user_id), fetchAccounts(user_id)])
@@ -31,7 +30,6 @@ function Goals() {
     }
   }, [user_id]);
 
-  // ✅ Fetch saving goals
   const fetchGoals = async (user_id) => {
     try {
       const res = await axios.get(
@@ -44,7 +42,6 @@ function Goals() {
     }
   };
 
-  // ✅ Fetch user accounts
   const fetchAccounts = async (user_id) => {
     try {
       const res = await axios.get(
@@ -61,7 +58,6 @@ function Goals() {
     navigate("/create/savinggoal");
   };
 
-  // ✏️ Open Edit Modal
   const handleEditClick = (goal) => {
     setEditingGoal(goal);
     setFormData({
@@ -73,7 +69,6 @@ function Goals() {
     });
   };
 
-  // 🗑️ Delete Goal
   const handleDeleteGoal = async (goal_id) => {
     const confirmDelete = window.confirm(
       "⚠️ Are you sure you want to delete this saving goal?"
@@ -92,7 +87,6 @@ function Goals() {
     }
   };
 
-  // 💾 Update Goal
   const handleUpdateGoal = async (e) => {
     e.preventDefault();
 
@@ -126,7 +120,6 @@ function Goals() {
 
   const handleCloseEdit = () => setEditingGoal(null);
 
-  // ✅ Get linked account info
   const getLinkedAccount = (account_id) => {
     return accounts.find((a) => a.account_id === Number(account_id));
   };

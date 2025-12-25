@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import "../Styles/TransactionCreate.css"; // reuse same dialog style
+import "../Styles/TransactionCreate.css"; 
 
 export default function TransactionUpdateDialog() {
   const { transaction_id } = useParams();
@@ -22,9 +22,8 @@ export default function TransactionUpdateDialog() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showTooltip, setShowTooltip] = useState(false); // 👈 to show tooltip
+  const [showTooltip, setShowTooltip] = useState(false); 
 
-  // ✅ Initial Load
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
@@ -39,7 +38,6 @@ export default function TransactionUpdateDialog() {
     fetchCategories();
   }, [transaction_id]);
 
-  // ✅ Fetch Transaction Details
   const fetchTransaction = async (id, user_id) => {
     try {
       const res = await axios.get(
@@ -60,13 +58,12 @@ export default function TransactionUpdateDialog() {
 
       setLoading(false);
     } catch (err) {
-      console.error("❌ Error loading transaction:", err);
+      console.error(" Error loading transaction:", err);
       setError("Failed to load transaction details.");
       setLoading(false);
     }
   };
 
-  // ✅ Fetch Accounts
   const fetchAccounts = async (user_id) => {
     try {
       const res = await axios.get(
@@ -79,7 +76,6 @@ export default function TransactionUpdateDialog() {
     }
   };
 
-  // ✅ Fetch Categories
   const fetchCategories = async () => {
     try {
       const res = await axios.get(
@@ -92,21 +88,19 @@ export default function TransactionUpdateDialog() {
     }
   };
 
-  // ✅ Handle Input Changes (Prevent Amount Change)
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "amount") {
-      // Prevent modification & show tooltip
+      
       setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 3000); // hide after 3s
+      setTimeout(() => setShowTooltip(false), 3000); 
       return;
     }
 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Update Transaction (without modifying amount)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -121,7 +115,7 @@ export default function TransactionUpdateDialog() {
         tranDate: formData.tranDate,
         tranTime: formData.tranTime,
         transactionType: formData.transactionType,
-        amount: formData.amount, // unchanged
+        amount: formData.amount, 
       };
 
       await axios.put(
@@ -132,7 +126,7 @@ export default function TransactionUpdateDialog() {
       alert("✅ Transaction details updated successfully!");
       navigate("/transactions");
     } catch (err) {
-      console.error("❌ Update failed:", err);
+      console.error(" Update failed:", err);
       setError("Failed to update transaction.");
     } finally {
       setLoading(false);
@@ -149,7 +143,7 @@ export default function TransactionUpdateDialog() {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit} className="dialog-form">
-          {/* Account Dropdown */}
+          
           <div className="form-group">
             <label>Account</label>
             <select
@@ -167,7 +161,6 @@ export default function TransactionUpdateDialog() {
             </select>
           </div>
 
-          {/* Category Dropdown */}
           <div className="form-group">
             <label>Category</label>
             <select
@@ -185,7 +178,6 @@ export default function TransactionUpdateDialog() {
             </select>
           </div>
 
-          {/* Amount Field (Editable but protected) */}
           <div className="form-group tooltip-container">
             <label>Amount (Rs.)</label>
             <input
@@ -203,7 +195,6 @@ export default function TransactionUpdateDialog() {
             )}
           </div>
 
-          {/* Description */}
           <div className="form-group">
             <label>Description</label>
             <input
@@ -215,7 +206,6 @@ export default function TransactionUpdateDialog() {
             />
           </div>
 
-          {/* Date and Time */}
           <div className="form-inline">
             <div className="form-group">
               <label>Date</label>
@@ -237,7 +227,6 @@ export default function TransactionUpdateDialog() {
             </div>
           </div>
 
-          {/* Buttons */}
           <div className="dialog-actions">
             <button type="submit" className="save-btn" disabled={loading}>
               💾 {loading ? "Saving..." : "Save Changes"}

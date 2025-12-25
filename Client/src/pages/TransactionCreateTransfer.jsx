@@ -5,7 +5,7 @@ import "../Styles/TransactionCreate.css";
 export default function TransactionCreateTransfer() {
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [savingGoals, setSavingGoals] = useState([]); // 🧩 store active goals
+  const [savingGoals, setSavingGoals] = useState([]); 
   const [formData, setFormData] = useState({
     user_id: "",
     from_account_id: "",
@@ -19,18 +19,16 @@ export default function TransactionCreateTransfer() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Load user info, accounts, and transfer categories
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user) {
       setFormData((prev) => ({ ...prev, user_id: user.user_id }));
       fetchAccounts(user.user_id);
       fetchCategories();
-      fetchSavingGoals(user.user_id); // fetch active goals
+      fetchSavingGoals(user.user_id);
     } else setError("User not logged in.");
   }, []);
 
-  // ✅ Fetch user's accounts
   const fetchAccounts = async (user_id) => {
     try {
       const res = await axios.get(`http://localhost:3000/api/accounts/user/${user_id}`);
@@ -40,7 +38,6 @@ export default function TransactionCreateTransfer() {
     }
   };
 
-  // ✅ Fetch transfer-related categories (IDs 26–30)
   const fetchCategories = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/transactionCategories");
@@ -53,7 +50,6 @@ export default function TransactionCreateTransfer() {
     }
   };
 
-  // ✅ Fetch user's active saving goals
   const fetchSavingGoals = async (user_id) => {
     try {
       const res = await axios.get(`http://localhost:3000/api/savingsGoals/user/${user_id}`);
@@ -62,11 +58,10 @@ export default function TransactionCreateTransfer() {
       );
       setSavingGoals(activeGoals);
     } catch (err) {
-      console.error("❌ Failed to fetch saving goals:", err);
+      console.error(" Failed to fetch saving goals:", err);
     }
   };
 
-  // ✅ Detect liability or credit accounts robustly
   const isLiabilityAccount = (account) => {
     const typeName = (account.acc_type_name || "").toLowerCase();
     const nickname = (account.nickname || "").toLowerCase();
@@ -81,7 +76,6 @@ export default function TransactionCreateTransfer() {
     );
   };
 
-  // ✅ Check if an account is linked to an active saving goal
   const isGoalLinked = (account_id) => {
     return savingGoals.some(
       (goal) => Number(goal.ACCOUNT_ID || goal.account_id) === Number(account_id)
@@ -93,7 +87,6 @@ export default function TransactionCreateTransfer() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ✅ Submit transfer transaction
   const handleSubmit = async (e) => {
     e.preventDefault();
     const { user_id, from_account_id, to_account_id, amount } = formData;
@@ -103,7 +96,6 @@ export default function TransactionCreateTransfer() {
     if (from_account_id === to_account_id)
       return alert("⚠️ You cannot transfer to the same account.");
 
-    // 🚫 Block if From account is linked to an active saving goal
     if (isGoalLinked(from_account_id)) {
       alert("⚠️ This account is linked to an active saving goal. Transfers from it are not allowed.");
       return;
@@ -113,7 +105,7 @@ export default function TransactionCreateTransfer() {
     setError("");
 
     try {
-      // Fetch both accounts
+      
       const fromRes = await axios.get(
         `http://localhost:3000/api/accounts/${from_account_id}?user_id=${user_id}`
       );
@@ -127,7 +119,6 @@ export default function TransactionCreateTransfer() {
       const isLiability = isLiabilityAccount(fromAcc);
       const transferAmount = Number(amount);
 
-      // ✅ Prevent negative balances for non-liability accounts
       if (!isLiability && fromAcc.balance < transferAmount) {
         alert(
           `❌ Insufficient balance in "${fromAcc.nickname}". You cannot transfer Rs.${transferAmount.toFixed(
@@ -138,7 +129,6 @@ export default function TransactionCreateTransfer() {
         return;
       }
 
-      // ✅ Prepare transaction payload
       const payload = {
         user_id,
         category_id: formData.category_id,
@@ -151,7 +141,6 @@ export default function TransactionCreateTransfer() {
           `Transfer from ${fromAcc.nickname} to ${toAcc.nickname}`,
       };
 
-      // Step 1️⃣ Record both transactions
       await axios.post("http://localhost:3000/api/transactions", {
         ...payload,
         account_id: from_account_id,
@@ -161,7 +150,6 @@ export default function TransactionCreateTransfer() {
         account_id: to_account_id,
       });
 
-      // Step 2️⃣ Update balances
       const newFromBalance = fromAcc.balance - transferAmount;
       const newToBalance = toAcc.balance + transferAmount;
 
@@ -180,7 +168,7 @@ export default function TransactionCreateTransfer() {
       alert("✅ Transfer completed successfully!");
       window.history.back();
     } catch (err) {
-      console.error("❌ Transfer failed:", err);
+      console.error("Transfer failed:", err);
       setError("Failed to complete transfer.");
     } finally {
       setLoading(false);
@@ -194,7 +182,7 @@ export default function TransactionCreateTransfer() {
         {error && <p className="error-text">{error}</p>}
 
         <form onSubmit={handleSubmit} className="dialog-form">
-          {/* From Account */}
+        
           <div className="form-group">
             <label>From Account</label>
             <select
@@ -224,7 +212,6 @@ export default function TransactionCreateTransfer() {
             </select>
           </div>
 
-          {/* To Account */}
           <div className="form-group">
             <label>To Account</label>
             <select
@@ -242,7 +229,6 @@ export default function TransactionCreateTransfer() {
             </select>
           </div>
 
-          {/* Category */}
           <div className="form-group">
             <label>Category</label>
             <select
@@ -260,7 +246,6 @@ export default function TransactionCreateTransfer() {
             </select>
           </div>
 
-          {/* Amount */}
           <div className="form-group">
             <label>Amount (Rs.)</label>
             <input
@@ -273,7 +258,6 @@ export default function TransactionCreateTransfer() {
             />
           </div>
 
-          {/* Description */}
           <div className="form-group">
             <label>Description</label>
             <input
@@ -285,7 +269,6 @@ export default function TransactionCreateTransfer() {
             />
           </div>
 
-          {/* Date & Time */}
           <div className="form-inline">
             <div className="form-group">
               <label>Date</label>
