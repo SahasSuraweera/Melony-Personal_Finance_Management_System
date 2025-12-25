@@ -35,7 +35,7 @@ exports.getMonthlyExpenditurePreview = async (req, res) => {
     await cursor.close();
 
     res.status(200).json({
-      reportTitle: "Monthly Expenditure Analysis",
+      reportTitle: "Month-Wise Expenditure Analysis",
       year,
       recordCount: rows.length,
       data: rows,

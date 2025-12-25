@@ -1,28 +1,78 @@
-/* Full page center */
-.login-container {
+/* === Full Page Fix === */
+body.login-active {
+  margin-left: -100 !important; /* Override sidebar margin */
+}
+
+/* === Overall Layout === */
+.login-page {
+  display: flex;
+  height: 100vh;
+  font-family: "Poppins", sans-serif;
+  margin-left: 0 !important;
+}
+
+/* === Left Side === */
+.login-left {
+  flex: 1;
+  background: linear-gradient(135deg, #3f6a97, #00b4d8);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 80px;
+  box-sizing: border-box;
+}
+
+.app-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.welcome-text {
+  font-size: 18px;
+  line-height: 1.6;
+  max-width: 420px;
+  opacity: 0.9;
+}
+
+/* === Right Side === */
+.login-right {
+  flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
   background-color: #f4f6f8;
 }
 
-/* Login box */
 .login-box {
   background-color: white;
-  padding: 40px 30px;
+  padding: 45px 40px;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  width: 350px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.1);
+  width: 380px;
   text-align: center;
 }
 
 .login-box h2 {
   margin-bottom: 25px;
   color: #333;
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-/* Input fields */
+/* === Error Message === */
+.error {
+  color: #e63946;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+/* === Input Fields === */
 .input-group {
   margin-bottom: 20px;
   text-align: left;
@@ -30,9 +80,10 @@
 
 .input-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 6px;
   font-weight: 500;
   color: #555;
+  font-size: 14px;
 }
 
 .input-group input {
@@ -40,17 +91,18 @@
   padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #ccc;
-  font-size: 14px;
+  font-size: 15px;
   box-sizing: border-box;
+  transition: 0.2s ease;
 }
 
 .input-group input:focus {
   outline: none;
   border-color: #007bff;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 6px rgba(0, 123, 255, 0.25);
 }
 
-/* Button */
+/* === Button === */
 .login-button {
   width: 100%;
   padding: 12px;
@@ -60,16 +112,21 @@
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .login-button:hover {
   background-color: #0056b3;
+  transform: translateY(-2px);
 }
+
+/* === Sign Up Link === */
 .signup-link {
   text-align: center;
-  margin-top: 15px;
+  margin-top: 18px;
   color: #444;
+  font-size: 14px;
 }
 
 .signup-link .link {
@@ -80,4 +137,34 @@
 
 .signup-link .link:hover {
   text-decoration: underline;
+}
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .login-left {
+    align-items: center;
+    text-align: center;
+    padding: 50px 30px;
+  }
+
+  .login-right {
+    background-color: #fff;
+  }
+
+  .login-box {
+    width: 90%;
+    box-shadow: none;
+  }
+
+  .app-title {
+    font-size: 36px;
+  }
+
+  .welcome-text {
+    font-size: 16px;
+  }
 }

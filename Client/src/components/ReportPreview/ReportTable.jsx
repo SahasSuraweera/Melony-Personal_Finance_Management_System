@@ -1,5 +1,5 @@
 import React from "react";
-import "../../Styles/ReportTable.css"; // ✅ Import CSS
+import "../../Styles/ReportTable.css";
 
 const ReportTable = ({ report }) => {
   const data = report?.data || [];

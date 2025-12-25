@@ -18,8 +18,11 @@ function CreateAccount() {
   const [accountTypes, setAccountTypes] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("Asset");
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  // ✅ Fetch account types
+  const [balanceHint, setBalanceHint] = useState("");
+  const [hintType, setHintType] = useState("info"); 
+
   useEffect(() => {
     axios
       .get("http://localhost:3000/api/accountTypes")
@@ -28,7 +31,6 @@ function CreateAccount() {
       .finally(() => setLoading(false));
   }, []);
 
-  // ✅ Get user from localStorage
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user && user.user_id) {
@@ -39,23 +41,46 @@ function CreateAccount() {
     }
   }, [navigate]);
 
-  // ✅ Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
+
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "balance" || name === "acc_type_id" ? Number(value) : value,
+        name === "balance" && value === ""
+          ? ""
+          : name === "balance" || name === "acc_type_id"
+          ? Number(value)
+          : value,
     }));
+
+    if (name === "balance" && selectedCategory === "Liability") {
+      const numericValue = value === "" ? null : Number(value);
+      if (numericValue === null) {
+        setBalanceHint("💡 Enter 0 if no outstanding balance, or negative for debt.");
+        setHintType("info");
+      } else if (numericValue > 0) {
+        setBalanceHint("⚠️ Positive value means no current debt — this liability is cleared.");
+        setHintType("warning");
+      } else if (numericValue === 0) {
+        setBalanceHint("💡 Zero means there’s no amount owed at the moment.");
+        setHintType("info");
+      } else {
+        setBalanceHint("✅ Negative balance recorded as outstanding liability.");
+        setHintType("valid");
+      }
+    } else if (name === "balance" && selectedCategory === "Asset") {
+      setBalanceHint("");
+      setHintType("info");
+    }
   };
 
-  // ✅ Toggle between Assets and Liabilities
   const handleCategoryToggle = (category) => {
     setSelectedCategory(category);
-    setFormData((prev) => ({ ...prev, acc_type_id: "" }));
+    setFormData((prev) => ({ ...prev, acc_type_id: "", balance: "" }));
+    setBalanceHint("");
   };
 
-  // ✅ Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -63,24 +88,39 @@ function CreateAccount() {
     if (!formData.acc_type_id) return alert("⚠️ Please select an account type.");
 
     try {
-      await axios.post("http://localhost:3000/api/accounts", formData);
-      alert("✅ Account created successfully!");
-      navigate("/accounts"); // ✅ Go back to accounts page
+      setSubmitting(true);
+
+      const res = await axios.post("http://localhost:3000/api/accounts", formData);
+      console.log("✅ Account created successfully:", res.data);
+
+      const isSuccess =
+        res.status === 200 ||
+        res.status === 201 ||
+        res.data?.account_id ||
+        (res.data?.message && res.data.message.toLowerCase().includes("success"));
+
+      if (isSuccess) {
+        alert("🎉 Account created successfully!");
+        navigate("/accounts");
+      } else {
+        console.warn("⚠️ Unexpected server response:", res.data);
+        alert("⚠️ Account created, but response was unexpected. Check backend logs.");
+        navigate("/accounts");
+      }
     } catch (err) {
       console.error("❌ Error creating account:", err);
-      alert(
-        "❌ Failed to create account: " +
-          (err.response?.data?.error || err.message)
-      );
+      const msg =
+        err.response?.data?.error ||
+        err.response?.data?.message ||
+        err.message ||
+        "Unknown error";
+      alert("❌ Failed to create account: " + msg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // ✅ Cancel button handler
-  const handleCancel = () => {
-   {
-      navigate("/accounts");
-    }
-  };
+  const handleCancel = () => navigate("/accounts");
 
   const filteredAccountTypes = accountTypes.filter(
     (type) => type.assetOrLiability === selectedCategory
@@ -92,29 +132,23 @@ function CreateAccount() {
     <div className="create-account-container">
       <h2>Create New Account</h2>
 
-      {/* Toggle Buttons */}
       <div className="toggle-container">
         <button
           type="button"
-          className={`toggle-btn ${
-            selectedCategory === "Asset" ? "active" : ""
-          }`}
+          className={`toggle-btn ${selectedCategory === "Asset" ? "active" : ""}`}
           onClick={() => handleCategoryToggle("Asset")}
         >
           Assets
         </button>
         <button
           type="button"
-          className={`toggle-btn ${
-            selectedCategory === "Liability" ? "active" : ""
-          }`}
+          className={`toggle-btn ${selectedCategory === "Liability" ? "active" : ""}`}
           onClick={() => handleCategoryToggle("Liability")}
         >
           Liabilities
         </button>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit}>
         <label>Account Type:</label>
         <select
@@ -139,6 +173,7 @@ function CreateAccount() {
           onChange={handleChange}
           required
         />
+
         <input
           type="text"
           name="reference"
@@ -146,6 +181,7 @@ function CreateAccount() {
           value={formData.reference}
           onChange={handleChange}
         />
+
         <input
           type="text"
           name="institution"
@@ -153,24 +189,28 @@ function CreateAccount() {
           value={formData.institution}
           onChange={handleChange}
         />
-        <input
-          type="number"
-          name="balance"
-          placeholder="Initial Balance"
-          value={formData.balance}
-          onChange={handleChange}
-          required
-        />
+
+        <div className="balance-section">
+          <input
+            type="number"
+            name="balance"
+            placeholder={
+              selectedCategory === "Liability"
+                ? "Enter initial liability (<0)"
+                : "Enter initial balance"
+            }
+            value={formData.balance}
+            onChange={handleChange}
+            required
+          />
+          {balanceHint && <p className={`hint-text ${hintType}`}>{balanceHint}</p>}
+        </div>
 
         <div className="form-actions">
-          <button type="submit" className="create-btn">
-            ✅ Create
+          <button type="submit" className="create-btn" disabled={submitting}>
+            {submitting ? "Creating..." : "✅ Create"}
           </button>
-          <button
-            type="button"
-            className="cancel-btn"
-            onClick={handleCancel}
-          >
+          <button type="button" className="cancel-btn" onClick={handleCancel}>
             ❌ Cancel
           </button>
         </div>

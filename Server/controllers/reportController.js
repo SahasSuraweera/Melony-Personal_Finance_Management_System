@@ -34,7 +34,7 @@ exports.getMonthlyExpenditureAnalysis = async (req, res) => {
     await cursor.close();
 
     const doc = new PDFDocument({ margin: 40, size: "A4" });
-    const filename = `Monthly_Expenditure_Analysis_${user_id}_${year}.pdf`;
+    const filename = `Monthly_Wise_Expenditure_Analysis_${user_id}_${year}.pdf`;
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
@@ -45,7 +45,7 @@ exports.getMonthlyExpenditureAnalysis = async (req, res) => {
       .text("MELONY PERSONAL FINANCE MANAGEMENT SYSTEM", 0, 15, { align: "center" });
     doc.fillColor("black");
     doc.moveDown(2);
-    doc.font("Helvetica-Bold").fontSize(12).text("Monthly Expenditure Analysis Report", { align: "center" });
+    doc.font("Helvetica-Bold").fontSize(12).text("Month-Wise Expenditure Analysis Report", { align: "center" });
     doc.font("Helvetica-Bold").fontSize(9).text(`Year: ${year}`, { align: "center" });
     doc.font("Helvetica").fontSize(9)
       .text(`Generated on: ${new Date().toLocaleString()}`, { align: "center" });

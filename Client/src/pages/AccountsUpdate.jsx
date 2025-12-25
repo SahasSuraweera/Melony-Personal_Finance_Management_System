@@ -4,10 +4,10 @@ import axios from "axios";
 import "../Styles/AccountsUpdate.css";
 
 function AccountsUpdate() {
-  const { account_id } = useParams(); // e.g., /update/account/21
+  const { account_id } = useParams(); 
   const navigate = useNavigate();
 
-  // Get user info from localStorage
+  
   const user = JSON.parse(localStorage.getItem("user"));
   const user_id = user ? user.user_id : null;
 
@@ -16,17 +16,14 @@ function AccountsUpdate() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  //Fetch account details and account types
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch current account details
         const accountRes = await axios.get(
           `http://localhost:3000/api/accounts/${account_id}?user_id=${user_id}`
         );
         setAccount(accountRes.data);
 
-        // Fetch available account types
         const typesRes = await axios.get("http://localhost:3000/api/accountTypes");
         setAccountTypes(typesRes.data);
       } catch (err) {
@@ -79,7 +76,7 @@ function AccountsUpdate() {
       <h2>Update My Wallet (Account)</h2>
 
       <form onSubmit={handleSubmit} className="account-update-form">
-        {/* Account Type Dropdown */}
+        
         <div className="form-group">
           <label>Account Type</label>
           <select

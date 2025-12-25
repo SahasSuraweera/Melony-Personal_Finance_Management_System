@@ -1,0 +1,250 @@
+.goals-container {
+  background: #f8f9fb;
+  padding: 30px;
+  border-radius: 16px;
+  margin: 30px auto;
+  max-width: 1200px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+  transition: 0.3s ease;
+}
+
+.page-title {
+  color: #1e293b;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+}
+
+.goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+/* Goal Card */
+.goal-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-left: 6px solid #1fa83f;
+}
+
+.goal-card.inactive {
+  border-left: 6px solid #ccc;
+  opacity: 0.7;
+}
+
+.goal-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.goal-header h3 {
+  color: #1e293b;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.status {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  color: white;
+}
+
+.status.active {
+  background-color: #1fa83f;
+}
+
+.status.inactive {
+  background-color: #b0b0b0;
+}
+
+.goal-account {
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 15px;
+}
+
+/* Progress bar */
+.goal-progress {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.progress-bar {
+  background-color: #e2e8f0;
+  border-radius: 8px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background-color: #1fa83f;
+  height: 100%;
+  border-radius: 8px;
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  text-align: right;
+  font-size: 0.85rem;
+  color: #475569;
+  margin-top: 5px;
+}
+
+.goal-details p {
+  margin: 4px 0;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+.no-data {
+  text-align: center;
+  color: #6b7280;
+  font-size: 1rem;
+  margin-top: 20px;
+}
+
+.error-text {
+  color: red;
+  text-align: center;
+  font-weight: 500;
+}
+
+.loading-text {
+  text-align: center;
+  color: #475569;
+}
+
+.goals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.create-goal-btn {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.create-goal-btn:hover {
+  background: linear-gradient(90deg, #1d4ed8, #2563eb);
+  transform: translateY(-1px);
+}
+
+/* 🎯 Page Layout */
+.goals-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.2rem;
+}
+
+.create-goal-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.create-goal-btn:hover {
+  background-color: #43a047;
+}
+
+/* 🔹 Goal Action Buttons */
+.goal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.update-goal-btn {
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.update-goal-btn:hover {
+  background-color: #1976d2;
+}
+
+.delete-goal-btn {
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.delete-goal-btn:hover {
+  background-color: #d9363e;
+}
+
+
+.status.active {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+.status.inactive {
+  color: #c62828;
+  font-weight: bold;
+}
+
+.linked-account-header {
+  text-align: center;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #2b4a7e;
+  background: #f0f6ff;
+  border: 1px solid #cddfff;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.linked-account-header p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.missing-account {
+  color: #b71c1c;
+  background: #fdecea;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-align: center;
+  font-weight: 600;
+}

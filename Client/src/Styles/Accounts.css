@@ -1,4 +1,11 @@
-/* Header Section */
+
+.accounts-container {
+  margin-left: 500px;
+  padding: 30px;
+  box-sizing: border-box;
+  background-color: #f8f9fa;
+  min-height: 100vh;
+}
 .accounts-header {
   display: flex;
   justify-content: space-between;
@@ -23,7 +30,7 @@
   transform: translateY(-2px);
 }
 
-/* Container */
+
 .user-accounts-container {
   background: #f8f9fb;
   padding: 30px;
@@ -42,14 +49,14 @@
   margin-bottom: 25px;
 }
 
-/* Wallet Card Grid */
+
 .wallet-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 24px;
 }
 
-/* Each Wallet Card */
+
 .wallet-card {
   background: linear-gradient(135deg, #007bff, #00b4d8);
   color: white;
@@ -77,21 +84,21 @@
   border-radius: 50%;
 }
 
-/* Card Header */
+
 .wallet-header {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
-/* Balance */
+
 .wallet-balance {
   font-size: 1.8rem;
   font-weight: 700;
   margin: 10px 0 16px;
 }
 
-/* Meta Info */
+
 .wallet-meta p {
   font-size: 0.95rem;
   line-height: 1.5;
@@ -99,7 +106,7 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
-/* Action Buttons */
+
 .wallet-actions {
   display: flex;
   justify-content: space-between;
@@ -134,14 +141,14 @@
   background-color: #b02a37;
 }
 
-/* Error Message */
+
 .error {
   color: red;
   text-align: center;
   font-weight: 500;
 }
 
-/* Sections */
+
 .account-section {
   margin-top: 40px;
 }
@@ -155,13 +162,13 @@
   padding-left: 10px;
 }
 
-/* Asset Cards */
+
 .asset-card {
   background: linear-gradient(135deg, #007bff, #00b4d8);
   box-shadow: 0 6px 14px rgba(0, 123, 255, 0.2);
 }
 
-/* Liability Cards */
+
 .liability-card {
   background: linear-gradient(135deg, #dc3545, #ff6b6b);
   box-shadow: 0 6px 14px rgba(220, 53, 69, 0.2);
@@ -172,9 +179,102 @@
   box-shadow: 0 10px 18px rgba(220, 53, 69, 0.3);
 }
 
-/* No Data */
+
 .no-data {
   text-align: center;
   color: #64748b;
   font-style: italic;
 }
+
+.accounts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.accounts-actions {
+  display: flex;
+  gap: 12px;
+}
+
+
+.create-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.create-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
+
+
+.transfer-btn {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.transfer-btn:hover {
+  background-color: #138496;
+  transform: translateY(-2px);
+}
+
+
+.saving-goal-card {
+  background: linear-gradient(135deg, #fff8dc, #ffecb3);
+  border: 2px solid #fbc02d;
+  color: #444;
+  box-shadow: 0 3px 8px rgba(255, 193, 7, 0.4);
+}
+
+.gold-header {
+  font-weight: 600;
+  color: #b8860b;
+  text-transform: uppercase;
+}
+
+.gold-text {
+  color: #f9a825;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.goal-badge {
+  background: #ffd700;
+  color: #333;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+.goal-linked-card {
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.disabled-btn {
+  background-color: #ccc !important;
+  color: #666 !important;
+  cursor: not-allowed;
+  border: 1px solid #aaa;
+  pointer-events: auto; 
+}
+
+

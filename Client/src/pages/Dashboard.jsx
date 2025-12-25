@@ -1,267 +1,143 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "../Styles/Dashboard.css";
+import {
+  FaWallet,
+  FaArrowUp,
+  FaArrowDown,
+  FaPiggyBank,
+  FaChartLine,
+} from "react-icons/fa";
 
 function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [incomeExpense, setIncomeExpense] = useState(null);
   const [overallProgress, setOverallProgress] = useState(null);
-  const [overallBudget, setOverallBudget] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
+  const [userName, setUserName] = useState("Finance Manager");
 
-  const [loading, setLoading] = useState({
-    summary: true,
-    incomeExpense: true,
-    savingsProgress: true,
-    budgetProgress: true,
-  });
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentMonthName = currentDate.toLocaleString("default", { month: "long" });
+  const currentYear = currentDate.getFullYear();
 
-  const [error, setError] = useState({
-    summary: null,
-    incomeExpense: null,
-    savingsProgress: null,
-    budgetProgress: null,
-  });
-
-  const userId = 1; // Replace with logged-in user later
-
-  // 🏦 Fetch Account Summary
+  
   useEffect(() => {
-    const fetchAccountSummary = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:3000/api/analytics/user-summary/${userId}`
-        );
-        setSummary(res.data[0]);
-      } catch (err) {
-        console.error(err);
-        setError((prev) => ({
-          ...prev,
-          summary: "Unable to load your account summary. Please try again later.",
-        }));
-      } finally {
-        setLoading((prev) => ({ ...prev, summary: false }));
-      }
-    };
-    fetchAccountSummary();
+    const stored = JSON.parse(localStorage.getItem("user"));
+    console.log("Stored user:", stored);
+
+    if (stored?.user_id) setUserId(stored.user_id);
+    else if (stored?.id) setUserId(stored.id);
+    else setUserId(1); 
+
+    if (stored?.firstName && stored?.lastName)
+      setUserName(`${stored.firstName} ${stored.lastName}`);
+    else if (stored?.firstName) setUserName(stored.firstName);
+    else if (stored?.email) setUserName(stored.email.split("@")[0]);
   }, []);
 
-  // 💸 Fetch Current Month Income vs Expense
+  
   useEffect(() => {
-    const fetchIncomeVsExpense = async () => {
+    if (!userId) return;
+
+    setLoading(true);
+
+    const fetchData = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:3000/api/analytics/income-vs-expense/${userId}`
-        );
-        setIncomeExpense(res.data[0]);
-      } catch (err) {
-        console.error(err);
-        setError((prev) => ({
-          ...prev,
-          incomeExpense: "Unable to load income vs expense summary. Please try again later.",
-        }));
+        const [sumRes, incRes, savRes] = await Promise.all([
+          axios.get(`http://localhost:3000/api/analytics/user-summary/${userId}`),
+          axios.get(
+            `http://localhost:3000/api/analytics/income-vs-expense/${userId}?month=${currentMonth}&year=${currentYear}`
+          ),
+          axios.get(`http://localhost:3000/api/analytics/overall-savings-progress/${userId}`),
+        ]);
+
+        console.log(" API Responses:", {
+          userSummary: sumRes.data,
+          incomeVsExpense: incRes.data,
+          savingsProgress: savRes.data,
+        });
+
+        
+        setSummary(sumRes.data?.[0] || null);
+        setIncomeExpense(incRes.data?.[0] || null);
+        setOverallProgress(savRes.data?.[0] || null);
+      } catch (error) {
+        console.error(" Dashboard data fetch error:", error);
       } finally {
-        setLoading((prev) => ({ ...prev, incomeExpense: false }));
-      }
-    };
-    fetchIncomeVsExpense();
-  }, []);
-
-  // 💼 Fetch Overall Budget Progress (Current Month)
-  useEffect(() => {
-    const fetchOverallBudgetProgress = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:3000/api/analytics/budget-progress/${userId}`
-        );
-
-        // Handle both object or array responses
-        const data =
-          Array.isArray(res.data) && res.data.length > 0 ? res.data[0] : res.data;
-
-        console.log("💼 Budget Data:", data);
-        setOverallBudget(data);
-      } catch (err) {
-        console.error("Error fetching budget progress:", err);
-        setError((prev) => ({
-          ...prev,
-          budgetProgress:
-            "Unable to load overall budget progress. Please try again later.",
-        }));
-      } finally {
-        setLoading((prev) => ({ ...prev, budgetProgress: false }));
+        setLoading(false);
       }
     };
 
-    fetchOverallBudgetProgress();
-  }, []);
+    fetchData();
+  }, [userId, currentMonth, currentYear]);
 
-  // 💰 Fetch Overall Savings Progress
-  useEffect(() => {
-    const fetchOverallSavings = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:3000/api/analytics/overall-savings-progress/${userId}`
-        );
-        const data =
-          Array.isArray(res.data) && res.data.length > 0 ? res.data[0] : res.data;
-        setOverallProgress(data);
-      } catch (err) {
-        console.error(err);
-        setError((prev) => ({
-          ...prev,
-          savingsProgress: "Unable to load overall savings progress.",
-        }));
-      } finally {
-        setLoading((prev) => ({ ...prev, savingsProgress: false }));
-      }
-    };
+  
+  if (loading) {
+    return (
+      <div className="dashboard-loading">
+        <div className="spinner"></div>
+        <p>Fetching your financial overview...</p>
+      </div>
+    );
+  }
 
-    fetchOverallSavings();
-  }, []);
-
+  
   return (
-    <div className="dashboard-container">
-      <h1 className="dashboard-title">Welcome to Melony!</h1>
-      <p className="dashboard-subtitle">Your personal finance summary</p>
-
-      {/* 🏦 Account Summary */}
-      <div className="dashboard-section">
-        <h3>Account Summary</h3>
-        {loading.summary && <p className="info-message">Loading account summary...</p>}
-        {error.summary && <div className="error-box">{error.summary}</div>}
-
-        {!loading.summary && !error.summary && summary && (
-          <div className="dashboard-cards">
-            <div className="card">
-              <h3>Net Worth</h3>
-              <p className="blue">Rs.{summary.NET_WORTH?.toLocaleString()}</p>
-            </div>
-            <div className="card">
-              <h3>Total Assets</h3>
-              <p className="green">Rs.{summary.TOTAL_ASSETS?.toLocaleString()}</p>
-            </div>
-            <div className="card">
-              <h3>Total Liabilities</h3>
-              <p className={summary.TOTAL_LIABILITIES < 0 ? "red" : "green"}>
-                Rs.{Math.abs(summary.TOTAL_LIABILITIES)?.toLocaleString()}
-              </p>
-            </div>
-          </div>
-        )}
+    <div className="dashboard-wrapper">
+      <div className="dashboard-header">
+        <h1>
+          Welcome back, <span className="highlight">{userName}</span> 👋
+        </h1>
+        <p className="dashboard-subtitle">
+          Here’s your financial performance overview for {currentMonthName} {currentYear}
+        </p>
       </div>
 
-      {/* 💸 Income vs Expense */}
-      <div className="dashboard-section">
-        <h3>Current Month Income vs Expense</h3>
-        {loading.incomeExpense && <p className="info-message">Loading data...</p>}
-        {error.incomeExpense && <div className="error-box">{error.incomeExpense}</div>}
+      <div className="dashboard-grid">
+        
+        <div className="stat-card blue-gradient">
+          <FaWallet className="stat-icon" />
+          <h3>Net Worth</h3>
+          <p>Rs. {summary?.NET_WORTH?.toLocaleString() || "0"}</p>
+        </div>
 
-        {!loading.incomeExpense && !error.incomeExpense && incomeExpense && (
-          <>
-            <p className="month-label">Month: {incomeExpense.MONTH}</p>
-            <div className="dashboard-cards">
-              <div className="card">
-                <h3>Net Saving</h3>
-                <p className="blue">Rs.{incomeExpense.NET_SAVING?.toLocaleString()}</p>
-              </div>
-              <div className="card">
-                <h3>Total Income</h3>
-                <p className="green">Rs.{incomeExpense.TOTAL_INCOME?.toLocaleString()}</p>
-              </div>
-              <div className="card">
-                <h3>Total Expense</h3>
-                <p className="red">Rs.{incomeExpense.TOTAL_EXPENSE?.toLocaleString()}</p>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+        <div className="stat-card green-gradient">
+          <FaArrowUp className="stat-icon" />
+          <h3>Total Assets</h3>
+          <p>Rs. {summary?.TOTAL_ASSETS?.toLocaleString() || "0"}</p>
+        </div>
 
-      {/* 💼 Overall Budget Progress (This Month) */}
-      <div className="dashboard-section">
-        <h3>Overall Budget Progress (This Month)</h3>
-        {loading.budgetProgress && <p className="info-message">Loading data...</p>}
-        {error.budgetProgress && <div className="error-box">{error.budgetProgress}</div>}
+        <div className="stat-card red-gradient">
+          <FaArrowDown className="stat-icon" />
+          <h3>Total Liabilities</h3>
+          <p>Rs. {Math.abs(summary?.TOTAL_LIABILITIES || 0).toLocaleString()}</p>
+        </div>
 
-        {!loading.budgetProgress &&
-          !error.budgetProgress &&
-          overallBudget &&
-          overallBudget.TOTAL_ALLOCATED !== undefined && (
-            <div className="dashboard-cards">
-              <div className="card">
-                <h3>Total Allocated</h3>
-                <p className="blue">Rs.{overallBudget.TOTAL_ALLOCATED?.toLocaleString()}</p>
-              </div>
-              <div className="card">
-                <h3>Total Spent</h3>
-                <p className="red">Rs.{overallBudget.TOTAL_SPENT?.toLocaleString()}</p>
-              </div>
-              <div className="card">
-                <h3>Total Remaining</h3>
-                <p className="green">Rs.{overallBudget.TOTAL_REMAINING?.toLocaleString()}</p>
-              </div>
-              <div className="card">
-                <h3>Usage</h3>
-                <p
-                  className={
-                    overallBudget.OVERALL_USAGE_PERCENT >= 100
-                      ? "red"
-                      : overallBudget.OVERALL_USAGE_PERCENT >= 75
-                      ? "amber"
-                      : "green"
-                  }
-                >
-                  {overallBudget.OVERALL_USAGE_PERCENT?.toFixed(2)}%
-                </p>
-              </div>
-              <div className="card">
-                <h3>Status</h3>
-                <p>{overallBudget.OVERALL_STATUS}</p>
-              </div>
-            </div>
-          )}
-      </div>
+       
+        <div className="stat-card purple-gradient wide">
+          <FaChartLine className="stat-icon" />
+          <h3>
+            Net Saving ({currentMonthName} {currentYear})
+          </h3>
+          <p>Rs. {incomeExpense?.NET_SAVING?.toLocaleString() || "0"}</p>
+          <small>
+            Income: Rs.{incomeExpense?.TOTAL_INCOME?.toLocaleString() || "0"} | Expense: Rs.
+            {incomeExpense?.TOTAL_EXPENSE?.toLocaleString() || "0"}
+          </small>
+        </div>
 
-      {/* 💰 Overall Savings Progress */}
-      <div className="dashboard-section">
-        <h3>Overall Savings Progress</h3>
-        {loading.savingsProgress && <p className="info-message">Loading data...</p>}
-        {error.savingsProgress && <div className="error-box">{error.savingsProgress}</div>}
-
-        {!loading.savingsProgress && !error.savingsProgress && overallProgress && (
-          <div className="dashboard-cards">
-            <div className="card">
-              <h3>Total Goals</h3>
-              <p>{overallProgress.TOTAL_GOALS ?? 0}</p>
-            </div>
-            <div className="card">
-              <h3>Completed Goals</h3>
-              <p>{overallProgress.COMPLETED_GOALS ?? 0}</p>
-            </div>
-            <div className="card">
-              <h3>Active Goals</h3>
-              <p>{overallProgress.ACTIVE_GOALS ?? 0}</p>
-            </div>
-            <div className="card">
-              <h3>Overall Progress</h3>
-              <p
-                className={
-                  overallProgress.OVERALL_PROGRESS_PERCENT >= 75
-                    ? "green"
-                    : overallProgress.OVERALL_PROGRESS_PERCENT >= 40
-                    ? "amber"
-                    : "red"
-                }
-              >
-                {overallProgress.OVERALL_PROGRESS_PERCENT?.toFixed(2) ?? 0}%
-              </p>
-            </div>
-            <div className="card">
-              <h3>Status</h3>
-              <p>{overallProgress.GOAL_SUMMARY_STATUS || "No Data"}</p>
-            </div>
-          </div>
-        )}
+        
+        <div className="stat-card gold-gradient wide">
+          <FaPiggyBank className="stat-icon" />
+          <h3>Savings Progress</h3>
+          <p>{overallProgress?.OVERALL_PROGRESS_PERCENT?.toFixed(1) || 0}%</p>
+          <small>
+            {overallProgress?.COMPLETED_GOALS || 0} /{" "}
+            {overallProgress?.TOTAL_GOALS || 0} goals
+          </small>
+        </div>
       </div>
     </div>
   );
